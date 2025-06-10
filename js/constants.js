@@ -1,8 +1,4 @@
 
-export const EASY = 5;
-export const MEDIEM = 7;
-export const HARD = 9;
-
 // GAME UI
 export const GAME_DESCRIPTION = `Swap bottles find correct order!`;
 export const BUTTON_WIDTH = 80;
@@ -10,6 +6,18 @@ export const BUTTON_HEIGHT = 30;
 export const BUTTON_SIZE = 30;
 
 export const BUTTON_Y = 90;
+
+export const BUTTON_TYPE = {
+  OP_BUTTON: "op_button",
+  OTHERS: "others"
+}
+
+export const OP_BUTTON_NAME = {
+  MORE: "More",
+  INFO: "Info",
+  RESET: "Reset",
+  BACK: "Back"
+} 
 
 // BOTTLES
 export const BOTTLE_COLORS = [
@@ -27,4 +35,26 @@ export const BOTTLE_COLORS = [
 export const BOTTLE_WIDTH = 40;
 export const BOTTLE_HEIGHT = 100;
 export const BOTTLE_SPACE = 10;
+export const MAX_BOTTLE_ROWS = 2;
 export const MAX_BOTTLE_PER_ROW = 5;
+
+// Levels
+export const GAME_DIFFICULTY = {
+  EASY: "easy",
+  MEDIUM: "medium",
+  HARD: "hard"
+};
+
+export const GAME_DIFFICULTIES = [
+  GAME_DIFFICULTY.EASY,
+  GAME_DIFFICULTY.MEDIUM,
+  GAME_DIFFICULTY.HARD
+];
+
+export const GAME_DIFFICULTY_INFO = new Map(
+  [
+    [GAME_DIFFICULTY.EASY, {name: '简单', description: '适合新手，较少瓶子', bottleCount: 5 }],
+    [GAME_DIFFICULTY.MEDIUM, {name: '中等', description: '适中难度，平衡挑战', bottleCount: 7 }],
+    [GAME_DIFFICULTY.HARD, {name: '困难', description: '高难度，更多瓶子', bottleCount: 9 }],
+  ]
+);

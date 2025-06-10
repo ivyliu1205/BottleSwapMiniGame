@@ -1,6 +1,9 @@
 
+import { BUTTON_TYPE } from '../constants';
+
 export default class ButtonBase {
-  constructor(posX, posY, width, height) {
+  constructor(buttonType, posX, posY, width, height) {
+    this.buttonType = buttonType;
     this.posX = posX;
     this.posY = posY;
     this.width = width;

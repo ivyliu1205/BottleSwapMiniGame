@@ -2,26 +2,26 @@ import { BOTTLE_COLORS, BOTTLE_WIDTH, BOTTLE_HEIGHT } from '../constants';
 
 export default class Bottle {
   isSelected = false;
+  colorIndex = -1;
 
-  constructor(colorIndex) {
-    this.colorIndex = colorIndex;
+  constructor() {
+    console.log("Bottle construct");
   }
 
-  init(x, y) {
+  init(colorIndex, x, y) {
+    this.colorIndex = colorIndex;
     this.x = x;
     this.y = y;
     this.clearState();
   }
 
   render(ctx) {
+    ctx.save();
     if (this.isSelected) {
-      ctx.save();
       this.renderBottleShadow(ctx);
-      this.renderBottleImage(ctx)
-      ctx.restore();
-    } else {
-      this.renderBottleImage(ctx)
     }
+    this.renderBottleImage(ctx)
+    ctx.restore();
   }
 
   renderClick(ctx) {
@@ -31,6 +31,17 @@ export default class Bottle {
 
   clearState() {
     this.isSelected = false;
+  }
+
+  getColorIndex() {
+    return this.colorIndex;
+  }
+
+  isPointInside(x, y) {
+    return x >= this.x && 
+            x <= this.x + BOTTLE_WIDTH &&
+            y >= this.y && 
+            y <= this.y + BOTTLE_HEIGHT
   }
 
   /**

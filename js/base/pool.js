@@ -27,9 +27,7 @@ export default class Pool {
    */
   getItemByClass(name, className) {
     const pool = this.getPoolBySign(name);
-
     const result = pool.length ? pool.shift() : new className();
-
     return result;
   }
 

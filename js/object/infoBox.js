@@ -1,13 +1,14 @@
 import BoxBase from '../base/boxBase';
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../constants';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
+import { renderBackgroundShadow } from '../utils/componentUtil';
 
 export default class InfoBox extends BoxBase {
   constructor() {
-    super(180, 150);
+    super(270, 300);
 
-    this.cornerRadius = 8;
-    this.padding = 12;
-    this.lineHeight = 20;
+    this.padding = 30;
+    this.lineHeight = 35;
+    this.headerHeight = 60;
     
     this.title = "游戏说明";
     this.content = [
@@ -19,75 +20,47 @@ export default class InfoBox extends BoxBase {
     ];
   }
 
-  show(buttonX, buttonY, buttonSize) {
-    console.log("Show info box");
-    this.isVisible = true;
-    
-    this.x = buttonX - this.width / 2 + buttonSize / 2;
-    this.y = buttonY + buttonSize + 15;
-    
-    if (this.x < 10) {
-      this.x = 10;
-    } else if (this.x + this.width > SCREEN_WIDTH - 10) {
-      this.x = SCREEN_WIDTH - this.width - 10;
-    }
+  show() {
+    super.show();
+    const x = (SCREEN_WIDTH - this.width) / 2;
+    const y = (SCREEN_HEIGHT - this.height) / 2;
+    this.setPosition(x, y);
   }
 
   render(ctx) {
     if (!this.isVisible) return;
 
     ctx.save();
-    
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
-    // 绘制提示框阴影
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 2;
-    
-    // 绘制主体框
-    this.drawTooltipBox(ctx);
-    
-    ctx.restore();
-    
-    // 绘制文本内容
+    renderBackgroundShadow(ctx);
+    this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
+    this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
+
     this.drawContent(ctx);
+    ctx.restore();
   }
 
-  drawTooltipBox(ctx) {
-    this.renderBoxBackground(ctx, '#ffffff', '#e0e0e0');
-    
-    ctx.beginPath();
-    ctx.moveTo(this.x + this.cornerRadius, this.y);
-    ctx.lineTo(this.x + this.width - this.cornerRadius, this.y);
-    ctx.quadraticCurveTo(this.x + this.width, this.y, this.x + this.width, this.y + this.cornerRadius);
-    ctx.lineTo(this.x + this.width, this.y + this.height - this.cornerRadius);
-    ctx.quadraticCurveTo(this.x + this.width, this.y + this.height, this.x + this.width - this.cornerRadius, this.y + this.height);
-    ctx.lineTo(this.x + this.cornerRadius, this.y + this.height);
-    ctx.quadraticCurveTo(this.x, this.y + this.height, this.x, this.y + this.height - this.cornerRadius);
-    ctx.lineTo(this.x, this.y + this.cornerRadius);
-    ctx.quadraticCurveTo(this.x, this.y, this.x + this.cornerRadius, this.y);
-    ctx.closePath();
-    
-    ctx.fill();
-    ctx.stroke();
-  }
+  /**
+   * Handler
+   */
 
+
+  /**
+   * Draw
+   */
   drawContent(ctx) {
+    console.log("Render drawContent");
+    
     ctx.fillStyle = '#333333';
-    ctx.font = 'bold 16px Arial';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(this.title, this.x + this.width / 2, this.y + this.headerHeight);
+    
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#6c757d';
     ctx.textAlign = 'left';
     
-    const titleY = this.y + this.padding + 16;
-    ctx.fillText(this.title, this.x + this.padding, titleY);
-    
-    ctx.font = '14px Arial';
-    ctx.fillStyle = '#666666';
-    
     this.content.forEach((line, index) => {
-      const contentY = titleY + 24 + (index * this.lineHeight);
+      const contentY = this.y + this.headerHeight + 50 + (index * this.lineHeight);
       ctx.fillText(line, this.x + this.padding, contentY);
     });
   }

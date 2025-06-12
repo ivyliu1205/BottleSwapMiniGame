@@ -1,11 +1,12 @@
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
 import Bottle from '../object/bottle';
-import { BOTTLE_SPACE, BOTTLE_WIDTH, BOTTLE_HEIGHT, MAX_BOTTLE_PER_ROW, GAME_DESCRIPTION, BUTTON_HEIGHT, BUTTON_SIZE, BUTTON_Y, OP_BUTTON_NAME, GAME_DIFFICULTY, GAME_DIFFICULTY_INFO } from '../constants';
+import { BOTTLE_SPACE, BOTTLE_WIDTH, BOTTLE_HEIGHT, MAX_BOTTLE_PER_ROW, GAME_DESCRIPTION, BUTTON_HEIGHT, BUTTON_SIZE, BUTTON_Y, BUTTON_NAME, GAME_DIFFICULTY, GAME_DIFFICULTY_INFO } from '../constants';
 import OpButton, { OPERATION_BUTTONS } from '../object/opButton';
 import InfoBox from '../object/infoBox';
 import ErrorBox from '../object/errorBox';
 import VictoryBox from '../object/victoryBox';
-import DifficultySelector from '../object/difficultySelector';
+import DifficultySelectorBox from '../object/difficultySelectorBox';
+import { isFirstOpenWithVersion } from '../utils';
 
 export default class GameInfo {
   bottles = [];
@@ -24,7 +25,6 @@ export default class GameInfo {
   }
 
   render(ctx) {
-    console.log(">>> Render gameinfo");
     this.ctx = ctx;
 
     this.renderBackground();
@@ -32,28 +32,34 @@ export default class GameInfo {
     this.renderOpButtons();
     this.renderBottles();
     this.renderVictoryBox();
+    this.renderInfoBox();
+    this.renderErrorBox();
+    this.renderDifficultySelectorBox();
 
-    this.infoBox = this.infoBox ? this.infoBox : this.infoBox = new InfoBox();
-    this.infoBox.render(this.ctx);
-
-    this.errorBox = this.errorBox ? this.errorBox : this.errorBox = new ErrorBox();
-    this.errorBox.render(this.ctx);
-
-    this.renderDifficultySelector();
+    if (isFirstOpenWithVersion()) {
+      console.log("Is first open");
+      this.handleInfo();
+    }
   }
 
   renderVictoryBox() {
     if (!this.victoryBox) {
       this.victoryBox = new VictoryBox();
     }
-    this.victoryBox.setOnRestartCallback(() => {
+    this.victoryBox.setOnNewGameCallback(() => {
       this.handleReset();
     });
-  
-    this.victoryBox.setOnContinueCallback(() => {
-      console.log("Continue to next level");
-      GameGlobal.databus.initNewGame();
-      this.render(this.ctx);
+
+    this.victoryBox.setOnShareToFriendCallback(() => {
+      // 分享给朋友的逻辑（调用微信API）
+      console.log("Share to friend");
+      GameGlobal.databus.shareResultToFriend();
+    });
+    
+    this.victoryBox.setOnShareToMomentsCallback(() => {
+      // 分享到朋友圈的逻辑（调用微信API）
+      console.log("Share to cycle");
+      GameGlobal.databus.shareResultToMoment();
     });
     
     // 如果VictoryBox是可见的，渲染它
@@ -62,21 +68,31 @@ export default class GameInfo {
     }
   }
 
-  renderDifficultySelector() {
-    if (!this.difficultySelector) {
-      this.difficultySelector = new DifficultySelector();
+  renderInfoBox() {
+    this.infoBox = this.infoBox ? this.infoBox : this.infoBox = new InfoBox();
+    this.infoBox.render(this.ctx);
+  }
 
-      this.difficultySelector.setOnDifficultySelect((difficulty) => {
+  renderErrorBox() {
+    this.errorBox = this.errorBox ? this.errorBox : this.errorBox = new ErrorBox();
+    this.errorBox.render(this.ctx);
+  }
+
+  renderDifficultySelectorBox() {
+    if (!this.difficultySelectorBox) {
+      this.difficultySelectorBox = new DifficultySelectorBox();
+
+      this.difficultySelectorBox.setOnDifficultySelect((difficulty) => {
         console.log(`Choose difficulty ${difficulty}`);
         GameGlobal.databus.updateDifficulty(GAME_DIFFICULTY[difficulty.toUpperCase()]);
         this.render(this.ctx);
       });
 
-      this.difficultySelector.setOnClose(() => {
+      this.difficultySelectorBox.setOnClose(() => {
         this.render(this.ctx);
       });
     }
-    this.difficultySelector.render(this.ctx);
+    this.difficultySelectorBox.render(this.ctx);
   }
 
   renderGameDescription() {
@@ -118,9 +134,7 @@ export default class GameInfo {
       if (!this.opButtons.get(buttonName)) {
         const newButton = new OpButton(buttonName, buttonX, BUTTON_Y, BUTTON_SIZE);
         newButton.setOnImageLoaded(() => {
-          if (this.ctx) {
             this.render(this.ctx);
-          }
         });
         this.opButtons.set(buttonName, newButton);
       }
@@ -131,11 +145,10 @@ export default class GameInfo {
   touchEventHandler(event) {
     const { clientX, clientY } = event.touches[0]; // 获取触摸点的坐标
 
-    console.log(`Touch event at: ${clientX}, ${clientY}, ${this.difficultySelector}`);
+    console.log(`Touch event at: ${clientX}, ${clientY}, ${this.difficultySelectorBox}`);
 
-    if (this.difficultySelector && 
-          this.difficultySelector.isVisible &&
-          this.difficultySelector.handleClick(clientX, clientY)) {
+    if (this.difficultySelectorBox && 
+          this.difficultySelectorBox.handleClick(clientX, clientY)) {
       this.render(this.ctx);
       return;
     }
@@ -146,7 +159,7 @@ export default class GameInfo {
       return;
     }
 
-    if (this.errorBox && this.handleErrorBox(clientX, clientY)) {
+    if (this.errorBox && this.errorBox.handleClick(clientX, clientY)) {
       console.log("CLick error");
       this.render(this.ctx);
       return;
@@ -160,16 +173,16 @@ export default class GameInfo {
   handleOpButtons(x, y) {
     this.opButtons.forEach((button, buttonName) => {
       if (button.isPointInside(x, y)) {
-        if (buttonName == OP_BUTTON_NAME.BACK) {
+        if (buttonName == BUTTON_NAME.BACK) {
           console.log("CLick BACK");
           this.handleBack();
-        } else if (buttonName == OP_BUTTON_NAME.RESET) {
+        } else if (buttonName == BUTTON_NAME.RESET) {
           console.log("CLick RESET");
           this.handleReset();
-        } else if(buttonName == OP_BUTTON_NAME.INFO) {
+        } else if(buttonName == BUTTON_NAME.INFO) {
           console.log("CLick INFO");
-          this.handleInfo();
-        } else if (buttonName == OP_BUTTON_NAME.MORE) {
+          this.handleInfo(x, y);
+        } else if (buttonName == BUTTON_NAME.MORE) {
           console.log("CLick more");
           this.handleMore();
         }
@@ -197,12 +210,12 @@ export default class GameInfo {
   }
 
   handleInfo() {
-    const infoButton = this.opButtons.get(OP_BUTTON_NAME.INFO);
+    const infoButton = this.opButtons.get(BUTTON_NAME.INFO);
     if (infoButton) {
       if (this.infoBox.isVisible) {
         this.infoBox.hide();
       } else {
-        this.infoBox.show(infoButton.posX - 70, infoButton.posY, infoButton.width);
+        this.infoBox.show();
       }
       this.render(this.ctx);
     }
@@ -210,8 +223,8 @@ export default class GameInfo {
 
   handleMore() {
     console.log("More is clicked");
-    if (this.difficultySelector) {
-      this.difficultySelector.show(SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (this.difficultySelectorBox) {
+      this.difficultySelectorBox.show();
       console.log("Difficulty selector shown");
       this.render(this.ctx);
     }
@@ -246,7 +259,7 @@ export default class GameInfo {
 
   handleInfoBox(x, y) {
     if (this.infoBox.isVisible && !this.infoBox.isPointInside(x, y)) {
-      const infoButton = this.opButtons.get(OP_BUTTON_NAME.INFO);
+      const infoButton = this.opButtons.get(BUTTON_NAME.INFO);
       if (!(infoButton && infoButton.isPointInside(x, y))) {
         this.infoBox.hide();
         this.render(this.ctx);
@@ -255,38 +268,64 @@ export default class GameInfo {
     }
   }
 
-  handleErrorBox(x, y) {
-    if (this.errorBox.isVisible) {
-      this.errorBox.hide();
-      return true;
-    }
-    return false;
-  }
-
   /**
    * Find the positions of all bottles and generate bottles
    */
   placeBottles() {
     const n = GameGlobal.databus.getBottleNumber();
-    const rows = Math.ceil(n / MAX_BOTTLE_PER_ROW);
-    const lastRowCount = n % MAX_BOTTLE_PER_ROW || MAX_BOTTLE_PER_ROW; // Last row
-    const totalHeight = rows * BOTTLE_HEIGHT + (rows - 1) * BOTTLE_SPACE;
     
+    // 如果瓶子数量小于等于5，直接放在一排
+    if (n <= 5) {
+        const totalWidth = n * BOTTLE_WIDTH + (n - 1) * BOTTLE_SPACE;
+        const startX = (SCREEN_WIDTH - totalWidth) / 2;
+        const y = SCREEN_HEIGHT / 2 - BOTTLE_HEIGHT / 2;
+        
+        GameGlobal.databus.bottleIndexes.forEach((colorIdx, idx) => {
+            const x = startX + idx * (BOTTLE_WIDTH + BOTTLE_SPACE);
+            
+            const newBottle = this.createBottle(colorIdx);
+            newBottle.init(colorIdx, x, y);
+            this.bottles.push(newBottle);
+        });
+        return;
+    }
+    
+    // 大于5个瓶子时，尽量均分每行
+    const rows = Math.ceil(n / MAX_BOTTLE_PER_ROW);
+    const bottlesPerRow = Math.floor(n / rows); // 基础每行瓶子数
+    const extraBottles = n % rows; // 需要多分配的瓶子数
+    
+    // 计算每行的瓶子数量
+    const rowCounts = [];
+    for (let i = 0; i < rows; i++) {
+        // 前面的行多分配一个瓶子（如果有余数的话）
+        rowCounts[i] = bottlesPerRow + (i < extraBottles ? 1 : 0);
+    }
+    
+    const totalHeight = rows * BOTTLE_HEIGHT + (rows - 1) * BOTTLE_SPACE;
     const startY = (SCREEN_HEIGHT - totalHeight) / 2;
+    
+    let bottleIndex = 0;
+    
+    var colorIndexes = [];
+    for (let row = 0; row < rows; row++) {
+        const currentRowCount = rowCounts[row];
+        const currentRowWidth = currentRowCount * BOTTLE_WIDTH + (currentRowCount - 1) * BOTTLE_SPACE;
+        const currentRowStartX = (SCREEN_WIDTH - currentRowWidth) / 2;
+        
+        for (let col = 0; col < currentRowCount; col++) {
+            const x = currentRowStartX + col * (BOTTLE_WIDTH + BOTTLE_SPACE);
+            const y = startY + row * (BOTTLE_HEIGHT + BOTTLE_SPACE);
+            
+            const colorIdx = GameGlobal.databus.bottleIndexes[bottleIndex];
+            colorIndexes.push([colorIdx, x, y]);
+            bottleIndex++;
+        }
+    }
 
-    GameGlobal.databus.bottleIndexes.forEach((colorIdx, idx) => {
-      const row = Math.floor(idx / MAX_BOTTLE_PER_ROW);
-      const col = idx % MAX_BOTTLE_PER_ROW;
-
-      const currentRowCount = (row === rows - 1) ? lastRowCount : MAX_BOTTLE_PER_ROW;
-      const currentRowWidth = currentRowCount * BOTTLE_WIDTH + (currentRowCount - 1) * BOTTLE_SPACE;
-      const currentRowStartX = (SCREEN_WIDTH - currentRowWidth) / 2;
-      
-      const x = currentRowStartX + col * (BOTTLE_WIDTH + BOTTLE_SPACE);
-      const y = startY + row * (BOTTLE_HEIGHT + BOTTLE_SPACE);
-      
-      const newBottle = this.createBottle(colorIdx);
-      newBottle.init(colorIdx, x, y);
+    colorIndexes.forEach((item) => {
+      const newBottle = this.createBottle(item[0]);
+      newBottle.init(item[0], item[1], item[2]);
       this.bottles.push(newBottle);
     });
   }

@@ -1,1 +1,13 @@
-{"deviceOrientation":"portrait"}
+{
+  "deviceOrientation": "portrait",
+  "showStatusBar": false,
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "permission": {
+    "scope.writePhotosAlbum": {
+      "desc": "Save picture to share to album"
+    }
+  }
+}

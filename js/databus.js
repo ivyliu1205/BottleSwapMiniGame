@@ -1,4 +1,5 @@
 import Pool from './base/pool';
+import ShareManager from './runtime/shareManager';
 import { GAME_DIFFICULTY, GAME_DIFFICULTY_INFO } from './constants';
 import { shuffleArray } from './utils';
 
@@ -11,8 +12,9 @@ const DEFAULT_PREV_SWAP = [-1, -1];
  */
 export default class DataBus {
   pool = new Pool();
+  shareManager = new ShareManager();
 
-  gameDifficulty = GAME_DIFFICULTY.MEDIUM;
+  gameDifficulty = GAME_DIFFICULTY.EASY;
   bottleIndexes = [];
   expectedBottleIndexes = [];
   correctCnt = 0;
@@ -80,7 +82,7 @@ export default class DataBus {
   }
 
   /**
-   * Bottle swap
+   * Bottles
    */
   swapBottles(i, j) {
     [this.bottleIndexes[i], this.bottleIndexes[j]] = [this.bottleIndexes[j], this.bottleIndexes[i]];
@@ -103,6 +105,20 @@ export default class DataBus {
     return true;
   }
 
+  /**
+   * Share results
+   */
+  shareResultToFriend() {
+    this.shareManager.shareToFriend(this.swapCnt);
+  }
+
+  shareResultToMoment() {
+    this.shareManager.shareToMoments(this.swapCnt);
+  }
+
+  /**
+   * Utils
+   */
   getGameDifficulty() {
     return this.gameDifficulty;
   }

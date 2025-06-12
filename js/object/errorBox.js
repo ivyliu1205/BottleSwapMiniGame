@@ -7,12 +7,16 @@ export default class ErrorBox extends BoxBase {
     this.message = '';
   }
 
-  show(message, x, y, width = 200) {
-    this.isVisible = true;
+  show(message, x, y) {
+    super.show();
+    this.setPosition(x, y);
     this.message = message;
-    this.x = x;
-    this.y = y;
-    this.width = width;
+  }
+
+  handleClick(x, y) {
+    if (!this.isVisible) return false;
+    this.hide();
+    return true;
   }
 
   render(ctx) {
@@ -22,12 +26,8 @@ export default class ErrorBox extends BoxBase {
     ctx.save();
 
     renderBackgroundShadow(ctx);
-    this.renderBoxBackground(ctx, '#E8464E', '#E8464E');
-    
-    // 绘制圆角矩形背景
+    this.drawBoxBackground(ctx, '#E8464E', '#E8464E');
     this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 8);
-    ctx.fill();
-    ctx.stroke();
 
     // 绘制错误文本
     ctx.fillStyle = '#ffffff';
@@ -44,17 +44,4 @@ export default class ErrorBox extends BoxBase {
     ctx.restore();
   }
 
-  drawRoundedRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-  }
 }

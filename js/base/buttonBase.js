@@ -1,19 +1,11 @@
 
 import { BUTTON_TYPE } from '../constants';
+import ComponentBase from './componentBase';
 
-export default class ButtonBase {
-  constructor(buttonType, posX, posY, width, height) {
+export default class ButtonBase extends ComponentBase {
+  constructor(buttonType, x, y, width, height) {
+    super(true, width, height);
+    this.setPosition(x, y);
     this.buttonType = buttonType;
-    this.posX = posX;
-    this.posY = posY;
-    this.width = width;
-    this.height = height;
-  }
-
-  isPointInside(x, y) {
-    return x >= this.posX && 
-            x <= this.posX + this.width && 
-            y >= this.posY && 
-            y <= this.posY + this.height;
   }
 }

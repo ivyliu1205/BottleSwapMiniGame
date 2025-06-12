@@ -1,4 +1,4 @@
-import {PIXEL_RATIO} from './render';
+import { PIXEL_RATIO } from './render';
 import GameInfo from './runtime/gameinfo';
 import DataBus from './databus';
 
@@ -15,7 +15,6 @@ export default class Main {
   }
 
   start() {
-    console.log(">>>> Start game");
     GameGlobal.databus.reset();
     this.newRound();
   }
@@ -26,7 +25,6 @@ export default class Main {
   }
 
   render() {
-    console.log(">>> Render game");
     this.gameInfo.render(ctx);
   }
 }

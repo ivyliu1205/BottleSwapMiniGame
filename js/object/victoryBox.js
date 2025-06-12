@@ -1,34 +1,34 @@
 import { renderBackgroundShadow } from '../utils/componentUtil';
+import BoxBase from '../base/boxBase';
 
-export default class VictoryBox {
+export default class VictoryBox extends BoxBase {
   constructor() {
-    this.isVisible = false;
+    super(300, 240);
     this.swapCount = 0;
     this.correctCount = 0;
-    this.width = 300;
-    this.height = 200;
-    this.posX = 0;
-    this.posY = 0;
+
     this.buttonWidth = 100;
     this.buttonHeight = 40;
-    this.buttonY = 0;
-    this.onRestartCallback = null;
-    this.onContinueCallback = null;
-    this.onHideCallback = null; // 新增：隐藏后的回调
+    this.buttonSpacing = 10; // 按钮间距
+    this.buttonsStartY = 0;
+
+    // Callback functions
+    this.onNewGameCallback = null;
+    this.onShareToFriendCallback = null;
+    this.onShareToMomentsCallback = null;
   }
 
   // 设置按钮回调
-  setOnRestartCallback(callback) {
-    this.onRestartCallback = callback;
+  setOnNewGameCallback(callback) {
+    this.onNewGameCallback = callback;
   }
 
-  setOnContinueCallback(callback) {
-    this.onContinueCallback = callback;
+  setOnShareToFriendCallback(callback) {
+    this.onShareToFriendCallback = callback;
   }
 
-  // 新增：设置隐藏后的回调
-  setOnHideCallback(callback) {
-    this.onHideCallback = callback;
+  setOnShareToMomentsCallback(callback) {
+    this.onShareToMomentsCallback = callback;
   }
 
   show(swapCount, correctCount, screenWidth, screenHeight) {
@@ -37,16 +37,9 @@ export default class VictoryBox {
     this.correctCount = correctCount;
     
     // 计算居中位置
-    this.posX = (screenWidth - this.width) / 2;
-    this.posY = (screenHeight - this.height) / 2;
-    this.buttonY = this.posY + this.height - 60;
-  }
-
-  hide() {
-    this.isVisible = false;
-    if (this.onHideCallback) {
-      this.onHideCallback();
-    }
+    this.x = (screenWidth - this.width) / 2;
+    this.y = (screenHeight - this.height) / 2;
+    this.buttonsStartY = this.y + this.height - 80;
   }
 
   render(ctx) {
@@ -55,12 +48,8 @@ export default class VictoryBox {
     ctx.save();
 
     renderBackgroundShadow(ctx);
-    ctx.fillStyle = '#061A23';
-    
-    // 绘制圆角矩形背景
-    this.drawRoundedRect(ctx, this.posX, this.posY, this.width, this.height, 12);
-    ctx.fill();
-    ctx.stroke();
+    this.drawBoxBackground(ctx, '#061A23', '#061A23');
+    this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 12);
 
     // 绘制胜利标题
     ctx.fillStyle = '#49B265';
@@ -68,19 +57,30 @@ export default class VictoryBox {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const titleX = this.posX + this.width / 2;
-    const titleY = this.posY + 40;
+    const titleX = this.x + this.width / 2;
+    const titleY = this.y + 40;
     ctx.fillText('恭喜通关', titleX, titleY);
 
     // 绘制统计信息
     ctx.fillStyle = '#F3F2F3';
     ctx.font = '18px Arial';
     
-    ctx.fillText(`正确次数: ${this.correctCount}`, titleX, this.posY + this.height / 2);
+    ctx.fillText(`正确次数: ${this.correctCount}`, titleX, this.y + this.height / 2 - 20);
 
-    // 绘制按钮
-    this.drawButton(ctx, '重新开始', this.posX + 50, this.buttonY, '#FF5722');
-    this.drawButton(ctx, '继续游戏', this.posX + 150, this.buttonY, '#4CAF50');
+    // 绘制三个按钮
+    const buttonY1 = this.buttonsStartY;
+    const buttonY2 = this.buttonsStartY + this.buttonHeight + this.buttonSpacing;
+    
+    // 第一行：新游戏按钮（居中）
+    const newGameX = this.x + (this.width - this.buttonWidth) / 2;
+    this.drawButton(ctx, '新游戏', newGameX, buttonY1, '#4CAF50');
+
+    // 第二行：发送给朋友 和 发到朋友圈（左右并排）
+    const button2X = this.x + (this.width - this.buttonWidth * 2 - this.buttonSpacing) / 2;
+    const button3X = button2X + this.buttonWidth + this.buttonSpacing;
+    
+    this.drawButton(ctx, '发送给朋友', button2X, buttonY2, '#FF9800');
+    this.drawButton(ctx, '发到朋友圈', button3X, buttonY2, '#2196F3');
 
     ctx.restore();
   }
@@ -105,62 +105,63 @@ export default class VictoryBox {
     ctx.fillText(text, textX, textY);
   }
 
-  drawRoundedRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-  }
-
-  isPointInside(x, y) {
-    return x >= this.posX && 
-           x <= this.posX + this.width && 
-           y >= this.posY && 
-           y <= this.posY + this.height;
-  }
-
-  // 检查是否点击了重新开始按钮
-  isRestartButtonClicked(x, y) {
-    const buttonX = this.posX + 50;
+  // 检查是否点击了新游戏按钮
+  isNewGameButtonClicked(x, y) {
+    const buttonX = this.x + (this.width - this.buttonWidth) / 2;
+    const buttonY = this.buttonsStartY;
     return x >= buttonX && 
            x <= buttonX + this.buttonWidth && 
-           y >= this.buttonY && 
-           y <= this.buttonY + this.buttonHeight;
+           y >= buttonY && 
+           y <= buttonY + this.buttonHeight;
   }
 
-  // 检查是否点击了继续按钮
-  isContinueButtonClicked(x, y) {
-    const buttonX = this.posX + 150;
+  // 检查是否点击了发送给朋友按钮
+  isShareToFriendButtonClicked(x, y) {
+    const buttonX = this.x + (this.width - this.buttonWidth * 2 - this.buttonSpacing) / 2;
+    const buttonY = this.buttonsStartY + this.buttonHeight + this.buttonSpacing;
     return x >= buttonX && 
            x <= buttonX + this.buttonWidth && 
-           y >= this.buttonY && 
-           y <= this.buttonY + this.buttonHeight;
+           y >= buttonY && 
+           y <= buttonY + this.buttonHeight;
+  }
+
+  // 检查是否点击了发到朋友圈按钮
+  isShareToMomentsButtonClicked(x, y) {
+    const button2X = this.x + (this.width - this.buttonWidth * 2 - this.buttonSpacing) / 2;
+    const buttonX = button2X + this.buttonWidth + this.buttonSpacing;
+    const buttonY = this.buttonsStartY + this.buttonHeight + this.buttonSpacing;
+    return x >= buttonX && 
+           x <= buttonX + this.buttonWidth && 
+           y >= buttonY && 
+           y <= buttonY + this.buttonHeight;
   }
 
   handleClick(x, y) {
-    if (!this.isVisible) return false;
+    super.handleClick(x, y);
 
-    if (this.isRestartButtonClicked(x, y)) {
-      console.log("Restart button clicked");
-      this.hide(); // 先隐藏
-      if (this.onRestartCallback) {
-        this.onRestartCallback();
+    if (this.isNewGameButtonClicked(x, y)) {
+      console.log("New game button clicked");
+      this.hide();
+      if (this.onNewGameCallback) {
+        this.onNewGameCallback();
       }
       return true;
     }
 
-    if (this.isContinueButtonClicked(x, y)) {
-      console.log("Continue button clicked");
-      this.hide(); // 先隐藏
-      if (this.onContinueCallback) {
-        this.onContinueCallback();
+    if (this.isShareToFriendButtonClicked(x, y)) {
+      console.log("Share to friend button clicked");
+      this.hide();
+      if (this.onShareToFriendCallback) {
+        this.onShareToFriendCallback();
+      }
+      return true;
+    }
+
+    if (this.isShareToMomentsButtonClicked(x, y)) {
+      console.log("Share to moments button clicked");
+      this.hide();
+      if (this.onShareToMomentsCallback) {
+        this.onShareToMomentsCallback();
       }
       return true;
     }
@@ -169,7 +170,6 @@ export default class VictoryBox {
     if (this.isPointInside(x, y)) {
       return true; // 阻止事件传播
     }
-
     return false;
   }
 }

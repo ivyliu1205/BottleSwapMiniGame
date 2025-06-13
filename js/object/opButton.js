@@ -6,7 +6,7 @@ const RESET_BUTTON_IMG_SRC = 'images/reset.png';
 const INFO_BUTTON_IMG_SRC = 'images/question.png';
 const MORE_BUTTON_IMG_SRC = 'images/more.png';
 
-export const OPERATION_BUTTONS = [
+export const OPERATION_BUTTONS = [  // Right to left
   BUTTON_NAME.MORE,
   BUTTON_NAME.INFO,
   BUTTON_NAME.RESET,
@@ -21,11 +21,15 @@ const OPERATION_BUTTON_INFO = new Map([
 ]);
 
 export default class OpButton extends ButtonBase {
-  constructor(buttonName, x, y, size) {
-    super(BUTTON_TYPE.OP_BUTTON, x, y, size, size);
+  constructor(
+    buttonName, x, y, size, 
+    buttonType=BUTTON_TYPE.OP_BUTTON,
+    buttonInfo=OPERATION_BUTTON_INFO) {
+    super(buttonType, x, y, size, size);
 
+    this.buttonName = buttonName;
     this.img = wx.createImage();
-    this.img.src = OPERATION_BUTTON_INFO.get(buttonName);
+    this.img.src = buttonInfo.get(buttonName);
 
     this.img.onload = () => {
       this.imageLoaded = true;
@@ -39,6 +43,18 @@ export default class OpButton extends ButtonBase {
 
   setOnImageLoaded(callback) {
     this.onImageLoaded = callback;
+  }
+
+  handleClick(x, y) {
+    if (!this.isVisible) return false;
+    
+    if (this.isPointInside(x, y)) {
+      if (this.onClickCallback) {
+        this.onClickCallback(this.buttonName);
+      }
+      return true;
+    }
+    return false;
   }
 
   render(ctx) {

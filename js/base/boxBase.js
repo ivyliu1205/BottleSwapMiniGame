@@ -1,11 +1,20 @@
 import ComponentBase from '../base/componentBase';
+import CloseButton from '../object/closeButton';
 
 export default class BoxBase extends ComponentBase {
-  constructor(width, height) {
+  constructor(width, height, showCloseButton = false) {
     super(false, width, height);
 
     // Close button
-    this.hasCloseButton = false;
+    this.showCloseButton = showCloseButton;
+    this.closeButton = null;
+    
+    if (this.showCloseButton) {
+      this.closeButton = new CloseButton(30);
+      this.closeButton.setOnClickCallback(() => {
+        this.handleCloseButtonClick();
+      });
+    }
 
     // Callback functions
     this.onClose = null;
@@ -19,14 +28,52 @@ export default class BoxBase extends ComponentBase {
   }
 
   /**
+   * Events
+   */
+  show() {
+    super.show();
+    if (this.closeButton) {
+      this.closeButton.show();
+      // 更新关闭按钮位置
+      this.closeButton.setRelativePosition(this.x, this.y, this.width, this.height);
+    }
+  }
+
+  hide() {
+    console.log("HIDEEEE");
+    super.hide();
+    if (this.closeButton) {
+      this.closeButton.hide();
+    }
+  }
+
+  /**
    * Handler
    */
-  handleCloseButton(x, y) {
-    if (!this.hasCloseButton || !this.isCloseButtonClicked(x, y)) return false;
-    console.log("Close button clicked");
+  handleCloseButtonClick() {
+    console.log("Handler handleCloseButtonClick");
     this.hide();
-    if (this.onClose) this.onClose();
-    return true;
+    if (this.onClose) {
+      this.onClose();
+    }
+  }
+
+  handleCloseButton(x, y) {
+    if (this.closeButton && this.closeButton.isVisible) {
+      console.log("ener handleCloseButton");
+      return this.closeButton.handleClick(x, y);
+    }
+    return false;
+  }
+
+  /**
+   * Setters & Getters
+   */
+  setPosition(x, y) {
+    super.setPosition(x, y);
+    if (this.closeButton) {
+      this.closeButton.setRelativePosition(this.x, this.y, this.width, this.height);
+    }
   }
 
   /**
@@ -55,25 +102,16 @@ export default class BoxBase extends ComponentBase {
   }
 
   drawCloseButton(ctx) {
-    this.hasCloseButton = true;
-    this.closeButtonX = this.x + this.width - 35;
-    this.closeButtonY = this.y + 15;
-    this.closeButtonSize = 20;
-    
-    ctx.fillStyle = '#ff6b6b';
-    ctx.fillRect(this.closeButtonX, this.closeButtonY, this.closeButtonSize, this.closeButtonSize);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('×', this.closeButtonX + this.closeButtonSize / 2, this.closeButtonY + this.closeButtonSize / 2 + 5);
+    if (this.closeButton && this.closeButton.isVisible) {
+      this.closeButton.render(ctx);
+    }
   }
 
   /**
    * Utils
    */
   isCloseButtonClicked(x, y) {
-    if (!this.hasCloseButton) return false;
-    console.log("isCloseButtonClicked");
+    if (!this.isVisible || !this.hasCloseButton) return false;
     return x >= this.closeButtonX && 
             x <= this.closeButtonX + this.closeButtonSize &&
             y >= this.closeButtonY && 

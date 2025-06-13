@@ -1,12 +1,13 @@
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
 import Bottle from '../object/bottle';
-import { BOTTLE_SPACE, BOTTLE_WIDTH, BOTTLE_HEIGHT, MAX_BOTTLE_PER_ROW, GAME_DESCRIPTION, BUTTON_HEIGHT, BUTTON_SIZE, BUTTON_Y, BUTTON_NAME, GAME_DIFFICULTY, GAME_DIFFICULTY_INFO } from '../constants';
+import { BOTTLE_SPACE, BOTTLE_WIDTH, BOTTLE_HEIGHT, MAX_BOTTLE_PER_ROW, GAME_DESCRIPTION, BUTTON_HEIGHT, BUTTON_SIZE, BUTTON_Y, BUTTON_NAME, GAME_DIFFICULTY, GAME_DIFFICULTY_INFO, GAME_STATUS } from '../constants';
 import OpButton, { OPERATION_BUTTONS } from '../object/opButton';
 import InfoBox from '../object/infoBox';
 import ErrorBox from '../object/errorBox';
 import VictoryBox from '../object/victoryBox';
 import DifficultySelectorBox from '../object/difficultySelectorBox';
 import { isFirstOpenWithVersion } from '../utils';
+import { setFont } from '../utils/componentUtil';
 
 export default class GameInfo {
   bottles = [];
@@ -19,10 +20,10 @@ export default class GameInfo {
     wx.onTouchStart(this.touchEventHandler.bind(this));
   }
 
-  setFont() {
-    this.ctx.fillStyle = '#000000';
-    this.ctx.font = '20px Arial';
-  }
+  // setFont() {
+  //   this.ctx.fillStyle = '#000000';
+  //   this.ctx.font = '20px Arial';
+  // }
 
   render(ctx) {
     this.ctx = ctx;
@@ -46,23 +47,26 @@ export default class GameInfo {
     if (!this.victoryBox) {
       this.victoryBox = new VictoryBox();
     }
+    this.victoryBox.setOnHideCallback(() => {
+      GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+    });
+
     this.victoryBox.setOnNewGameCallback(() => {
       this.handleReset();
     });
 
     this.victoryBox.setOnShareToFriendCallback(() => {
-      // 分享给朋友的逻辑（调用微信API）
       console.log("Share to friend");
       GameGlobal.databus.shareResultToFriend();
+      this.handleReset();
     });
     
     this.victoryBox.setOnShareToMomentsCallback(() => {
-      // 分享到朋友圈的逻辑（调用微信API）
       console.log("Share to cycle");
       GameGlobal.databus.shareResultToMoment();
+      this.handleReset();
     });
     
-    // 如果VictoryBox是可见的，渲染它
     if (this.victoryBox && this.victoryBox.isVisible) {
       this.victoryBox.render(this.ctx);
     }
@@ -75,6 +79,9 @@ export default class GameInfo {
 
   renderErrorBox() {
     this.errorBox = this.errorBox ? this.errorBox : this.errorBox = new ErrorBox();
+    this.errorBox.setOnHideCallback(() => {
+      GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+    });
     this.errorBox.render(this.ctx);
   }
 
@@ -97,7 +104,8 @@ export default class GameInfo {
 
   renderGameDescription() {
     console.log(`Render Game Description`);
-    this.setFont(this.ctx);
+    // this.setFont(this.ctx);
+    setFont(this.ctx, 20);
     this.ctx.fillText(GAME_DESCRIPTION, 100, 50);
   }
 
@@ -118,11 +126,13 @@ export default class GameInfo {
   }
 
   renderGameDetails() {
-    this.setFont(this.ctx);
     this.ctx.textAlign = 'left';
 
     const difficulty = GAME_DIFFICULTY_INFO.get(GameGlobal.databus.getGameDifficulty()).name;
-    this.ctx.fillText(`${difficulty}`, 20, 95);
+    setFont(this.ctx, 25, undefined, true);
+    this.ctx.fillText(`${difficulty}`, 20, 90);
+
+    setFont(this.ctx, 20);
     this.ctx.fillText(`交换次数: ${GameGlobal.databus.swapCnt}`, 20, 125);
     this.ctx.fillText(`正确个数: ${GameGlobal.databus.correctCnt}`, 20, 155);
   }
@@ -136,6 +146,9 @@ export default class GameInfo {
         newButton.setOnImageLoaded(() => {
             this.render(this.ctx);
         });
+        newButton.setOnClickCallback((clickedButtonName) => {
+          this.handleButtonClick(clickedButtonName);
+        });
         this.opButtons.set(buttonName, newButton);
       }
       this.opButtons.get(buttonName).render(this.ctx);
@@ -143,51 +156,80 @@ export default class GameInfo {
   }
 
   touchEventHandler(event) {
-    const { clientX, clientY } = event.touches[0]; // 获取触摸点的坐标
-
+    const { clientX, clientY } = event.touches[0];
     console.log(`Touch event at: ${clientX}, ${clientY}, ${this.difficultySelectorBox}`);
 
-    if (this.difficultySelectorBox && 
-          this.difficultySelectorBox.handleClick(clientX, clientY)) {
-      this.render(this.ctx);
-      return;
+    switch(GameGlobal.databus.getGameStatus()) {
+      case GAME_STATUS.VICTORY:
+        console.log("PLaying VICTORY");
+        if (this.victoryBox && this.victoryBox.handleClick(clientX, clientY)) {
+          console.log("CLick victoryBox");
+          this.render(this.ctx);
+          return;
+        }
+        break;
+      case GAME_STATUS.ERROR:
+        console.log("PLaying ERROR");
+        if (this.errorBox && this.errorBox.handleClick(clientX, clientY)) {
+          console.log("CLick error");
+          this.render(this.ctx);
+          return;
+        }
+        break;
+      case GAME_STATUS.INFO:
+        console.log("PLaying INFO");
+        this.handleInfoBox(clientX, clientY);
+        break;
+      case GAME_STATUS.PLAYING:
+      default:
+        console.log("PLaying status");
+        if (this.difficultySelectorBox && 
+              this.difficultySelectorBox.handleClick(clientX, clientY)) {
+            this.render(this.ctx);
+            return;
+        }
+        this.handleOpButtons(clientX, clientY);
+        this.handleBottleSwap(clientX, clientY);
+        break;
     }
+  }
 
-    if (this.victoryBox && this.victoryBox.handleClick(clientX, clientY)) {
-      console.log("CLick victoryBox");
-      this.render(this.ctx);
-      return;
+  handleButtonClick(buttonName) {
+    console.log(`Button clicked: ${buttonName}`);
+    
+    switch(buttonName) {
+      case BUTTON_NAME.BACK:
+        console.log("Click BACK");
+        this.handleBack();
+        break;
+        
+      case BUTTON_NAME.RESET:
+        console.log("Click RESET");
+        this.handleReset();
+        break;
+        
+      case BUTTON_NAME.INFO:
+        console.log("Click INFO");
+        this.handleInfo();
+        break;
+        
+      case BUTTON_NAME.MORE:
+        console.log("Click MORE");
+        this.handleMore();
+        break;
+        
+      default:
+        console.warn(`Unknown button: ${buttonName}`);
     }
-
-    if (this.errorBox && this.errorBox.handleClick(clientX, clientY)) {
-      console.log("CLick error");
-      this.render(this.ctx);
-      return;
-    }
-
-    this.handleInfoBox(clientX, clientY);
-    this.handleOpButtons(clientX, clientY);
-    this.handleBottleSwap(clientX, clientY);
   }
 
   handleOpButtons(x, y) {
-    this.opButtons.forEach((button, buttonName) => {
-      if (button.isPointInside(x, y)) {
-        if (buttonName == BUTTON_NAME.BACK) {
-          console.log("CLick BACK");
-          this.handleBack();
-        } else if (buttonName == BUTTON_NAME.RESET) {
-          console.log("CLick RESET");
-          this.handleReset();
-        } else if(buttonName == BUTTON_NAME.INFO) {
-          console.log("CLick INFO");
-          this.handleInfo(x, y);
-        } else if (buttonName == BUTTON_NAME.MORE) {
-          console.log("CLick more");
-          this.handleMore();
-        }
+    this.opButtons.forEach((button) => {
+      if (button.handleClick(x, y)) {
+        return true;
       }
     });
+    return false;
   }
 
   handleReset() {
@@ -201,10 +243,8 @@ export default class GameInfo {
     this.bottleClicked = [];
     const backStatus = GameGlobal.databus.backToPrevStep();
     if (!backStatus) {
-      console.log("Rende cannot back info");
-      const errorX = SCREEN_WIDTH / 2 - this.errorBox.getWidth() / 2;
-      const errorY = SCREEN_HEIGHT / 2 - this.errorBox.getHeight() / 2;
-      this.errorBox.show('超过后退次数，无法后退！', errorX, errorY);
+      this.errorBox.show('超过后退次数，无法后退！');
+      GameGlobal.databus.setGameStatus(GAME_STATUS.ERROR);
     }
     this.render(this.ctx);
   }
@@ -214,8 +254,10 @@ export default class GameInfo {
     if (infoButton) {
       if (this.infoBox.isVisible) {
         this.infoBox.hide();
+        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       } else {
         this.infoBox.show();
+        GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       }
       this.render(this.ctx);
     }
@@ -236,36 +278,44 @@ export default class GameInfo {
         bottle.renderClick(this.ctx);
         this.bottleClicked.push(idx);
         if (this.bottleClicked.length == 2) {
-          const i = this.bottleClicked[0];
-          const j = this.bottleClicked[1];
+          GameGlobal.databus.swapBottles(
+            this.bottleClicked[0],
+            this.bottleClicked[1]
+          );
           this.bottleClicked = [];
-          GameGlobal.databus.swapBottles(i, j);
-          this.render(this.ctx);
+          // this.render(this.ctx);
 
           if (GameGlobal.databus.checkVictory()) {
-            console.log("Victory");
             this.victoryBox.show(
               GameGlobal.databus.swapCnt,
               GameGlobal.databus.correctCnt,
-              SCREEN_WIDTH,
-              SCREEN_HEIGHT
+              GameGlobal.databus.getGameDifficultyName()
             );
-            this.render(this.ctx);
+            GameGlobal.databus.setGameStatus(GAME_STATUS.VICTORY);
           }
+          this.render(this.ctx);
         }
       }
     });
   }
 
   handleInfoBox(x, y) {
-    if (this.infoBox.isVisible && !this.infoBox.isPointInside(x, y)) {
-      const infoButton = this.opButtons.get(BUTTON_NAME.INFO);
-      if (!(infoButton && infoButton.isPointInside(x, y))) {
-        this.infoBox.hide();
+    if (this.infoBox.isPointInside(x, y)) {
+      console.log("handleInfoBox");
+      if (this.infoBox.handleClick(x, y)) {
         this.render(this.ctx);
-        return;
       }
+      return;
     }
+    const infoButton = this.opButtons.get(BUTTON_NAME.INFO);
+    if (infoButton && infoButton.isPointInside(x, y)) {
+      this.handleInfo();
+      return;
+    }
+    
+    this.infoBox.hide();
+    GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+    this.render(this.ctx);
   }
 
   /**

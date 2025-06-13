@@ -1,6 +1,14 @@
 
 export const GAME_VERSION = '1.0.0';
 
+// GAME
+export const GAME_STATUS = {
+  PLAYING: 'playing',
+  INFO: 'info',
+  VICTORY: 'victory',
+  ERROR: 'error'
+}
+
 // GAME UI
 export const GAME_DESCRIPTION = `Swap bottles find correct order!`;
 export const BUTTON_WIDTH = 80;
@@ -11,6 +19,8 @@ export const BUTTON_Y = 90;
 
 export const BUTTON_TYPE = {
   OP_BUTTON: "op_button",
+  INNER_OP_BUTTON: "inner_op_button",
+  CLOSE_BUTTON: "close_button",
   OTHERS: "others"
 }
 

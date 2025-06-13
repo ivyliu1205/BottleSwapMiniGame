@@ -1,24 +1,28 @@
 
 export default class ShareManager {
   constructor() {
-    this.shareTitle = '我通关了这个有趣的游戏！';
-    this.shareImageUrl = 'images/share-image.jpg'; // 需要准备分享图片
+    this.shareTitle = '我通关了换瓶子！';
+    this.shareImageUrls = [
+      'images/share-img01.png',
+      'images/share-img02.png',
+      'images/share-img03.png',
+      'images/share-img04.png',
+      'images/share-img05.png'
+    ]
   }
 
-  // 分享给朋友
-  shareToFriend(correctCount = 0) {
+  shareToFriend(correctCount = 0, difficultyName='') {
     if (typeof wx === 'undefined') {
       console.log('非微信环境，无法分享');
       return;
     }
 
     wx.shareAppMessage({
-      title: `我用${correctCount}步通关了！你能做得更好吗？`,
-      imageUrl: this.shareImageUrl,
-      query: `from=friend&score=${correctCount}`, // 可以传递参数
+      title: `我用${correctCount}步通关了${difficultyName}关卡！你能做得更好吗？`,
+      imageUrl: this.getRandomShareImgUrl(),
+      query: `from=friend&score=${correctCount}`,
       success: (res) => {
         console.log('分享成功', res);
-        // 可以给用户一些奖励
         this.onShareSuccess('friend');
       },
       fail: (res) => {
@@ -28,22 +32,20 @@ export default class ShareManager {
     });
   }
 
-  // 分享到朋友圈（需要先设置分享到朋友圈的内容）
-  shareToMoments(correctCount = 0) {
+  shareToMoments(correctCount = 0, difficultyName='') {
     if (typeof wx === 'undefined') {
       console.log('非微信环境，无法分享');
       return;
     }
 
-    // 设置分享到朋友圈的内容
     wx.showShareMenu({
       withShareTicket: true,
       menus: ['shareAppMessage', 'shareTimeline']
     });
 
     wx.onShareTimeline({
-      title: `我用${correctCount}步通关了这个有趣的游戏！`,
-      imageUrl: this.shareImageUrl,
+      title: `我用${correctCount}步通关了这个换瓶子游戏的${difficultyName}关卡！`,
+      imageUrl: this.getRandomShareImgUrl(),
       query: `from=timeline&score=${correctCount}`,
       success: (res) => {
         console.log('设置朋友圈分享成功', res);
@@ -53,7 +55,6 @@ export default class ShareManager {
       }
     });
 
-    // 提示用户点击右上角分享
     wx.showToast({
       title: '请点击右上角分享到朋友圈',
       icon: 'none',
@@ -61,19 +62,15 @@ export default class ShareManager {
     });
   }
 
-  // 分享成功回调
   onShareSuccess(type) {
     wx.showToast({
       title: '分享成功！',
       icon: 'success',
       duration: 1500
     });
-    
-    // 这里可以给用户奖励，比如额外的提示次数等
-    console.log(`${type} 分享成功，可以给用户奖励`);
+    console.log(`${type} 分享成功`);
   }
 
-  // 分享失败回调
   onShareFail(type) {
     wx.showToast({
       title: '分享失败',
@@ -82,32 +79,36 @@ export default class ShareManager {
     });
   }
 
-  // 初始化分享设置（在游戏启动时调用）
   initShare() {
     if (typeof wx === 'undefined') return;
 
-    // 显示分享菜单
     wx.showShareMenu({
       withShareTicket: true,
       menus: ['shareAppMessage', 'shareTimeline']
     });
 
-    // 设置默认分享内容（用户点击右上角分享时）
     wx.onShareAppMessage(() => {
       return {
         title: this.shareTitle,
-        imageUrl: this.shareImageUrl,
+        imageUrl: this.getRandomShareImgUrl(),
         query: 'from=menu'
       };
     });
 
-    // 设置朋友圈分享内容
     wx.onShareTimeline(() => {
       return {
         title: this.shareTitle,
-        imageUrl: this.shareImageUrl,
+        imageUrl: this.getRandomShareImgUrl(),
         query: 'from=timeline_menu'
       };
     });
+  }
+
+  /**
+   * Utils
+   */
+  getRandomShareImgUrl() {
+    const index = Math.floor(Math.random() * this.shareImageUrls.length);
+    return this.shareImageUrls[index];
   }
 }

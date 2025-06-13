@@ -1,14 +1,17 @@
 import BoxBase from '../base/boxBase';
 import { renderBackgroundShadow } from '../utils/componentUtil';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
 
 export default class ErrorBox extends BoxBase {
   constructor() {
-    super(200, 80);
+    super(270, 80);
     this.message = '';
   }
 
-  show(message, x, y) {
+  show(message) {
     super.show();
+    const x = (SCREEN_WIDTH - this.width) / 2;
+    const y = (SCREEN_HEIGHT - this.height) / 2;
     this.setPosition(x, y);
     this.message = message;
   }
@@ -22,9 +25,7 @@ export default class ErrorBox extends BoxBase {
   render(ctx) {
     if (!this.isVisible) return;
 
-    // 保存当前绘图状态
     ctx.save();
-
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#E8464E', '#E8464E');
     this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 8);

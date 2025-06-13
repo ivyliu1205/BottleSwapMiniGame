@@ -4,7 +4,7 @@ import { renderBackgroundShadow } from '../utils/componentUtil';
 
 export default class InfoBox extends BoxBase {
   constructor() {
-    super(270, 300);
+    super(270, 330, true);
 
     this.padding = 30;
     this.lineHeight = 35;
@@ -16,7 +16,8 @@ export default class InfoBox extends BoxBase {
       "• 直到找到瓶子正确位置",
       "• 正确个数展示在左上角",
       "• 使用重置按钮重新开始",
-      "• 使用返回按钮撤销操作"
+      "• 使用返回按钮撤销操作",
+      "• 使用更多按钮修改难度"
     ];
   }
 
@@ -34,6 +35,7 @@ export default class InfoBox extends BoxBase {
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
     this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
+    this.drawCloseButton(ctx);
 
     this.drawContent(ctx);
     ctx.restore();
@@ -42,7 +44,15 @@ export default class InfoBox extends BoxBase {
   /**
    * Handler
    */
-
+  handleClick(x, y) {
+    console.log("Handle info click");
+    if (!this.isVisible) return false;
+    if (this.handleCloseButton(x, y)) {
+      console.log("Handle info click handleCloseButton");
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Draw

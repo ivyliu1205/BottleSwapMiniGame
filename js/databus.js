@@ -1,7 +1,7 @@
 import Pool from './base/pool';
 import ShareManager from './runtime/shareManager';
-import { GAME_DIFFICULTY, GAME_DIFFICULTY_INFO } from './constants';
-import { shuffleArray } from './utils';
+import { GAME_DIFFICULTY, GAME_DIFFICULTY_INFO, GAME_STATUS } from './constants';
+import { isFirstOpenWithVersion, shuffleArray } from './utils';
 
 let instance;
 
@@ -14,16 +14,21 @@ export default class DataBus {
   pool = new Pool();
   shareManager = new ShareManager();
 
+  gameStatus = GAME_STATUS.PLAYING;
   gameDifficulty = GAME_DIFFICULTY.EASY;
   bottleIndexes = [];
   expectedBottleIndexes = [];
   correctCnt = 0;
   swapCnt = 0;
-  prevSwap = DEFAULT_PREV_SWAP
+  prevSwap = DEFAULT_PREV_SWAP;
 
   constructor() {
     if (instance) return instance;
     instance = this;
+
+    if (isFirstOpenWithVersion()) {
+      this.gameStatus = GAME_STATUS.INFO;
+    }
   }
 
   // 重置游戏状态
@@ -33,16 +38,15 @@ export default class DataBus {
     this.correctCnt = 0;
     this.swapCnt = 0;
     this.prevSwap = DEFAULT_PREV_SWAP;
+    this.gameStatus = GAME_STATUS.PLAYING;
   }
 
   /**
    * Initialize new game
    */
   initNewGame() {
-    console.log(">>>> New Game");
     this.reset();
 
-    console.log(`>>> ${GAME_DIFFICULTY_INFO} ${this.gameDifficulty}`);
     const bottleCnt = this.getBottleNumber();
     this.expectedBottleIndexes = [...Array(bottleCnt).keys()];
     shuffleArray(this.expectedBottleIndexes);
@@ -50,12 +54,11 @@ export default class DataBus {
     this.bottleIndexes = [...this.expectedBottleIndexes];
     shuffleArray(this.bottleIndexes);
 
-    if (this.getCorrectBottleCount() == bottleCnt) {
-      console.log("Reshuffle the bottles");
-      shuffleArray(this.bottleIndexes);
-    }
-
     this.correctCnt = this.getCorrectBottleCount();
+    while (this.correctCnt > 0) {
+      shuffleArray(this.bottleIndexes);
+      this.correctCnt = this.getCorrectBottleCount();
+    }
   }
 
   updateDifficulty(newDifficulty) {
@@ -109,21 +112,34 @@ export default class DataBus {
    * Share results
    */
   shareResultToFriend() {
-    this.shareManager.shareToFriend(this.swapCnt);
+    this.shareManager.shareToFriend(this.swapCnt, this.getGameDifficultyName());
   }
 
   shareResultToMoment() {
-    this.shareManager.shareToMoments(this.swapCnt);
+    this.shareManager.shareToMoments(this.swapCnt, this.getGameDifficultyName());
   }
 
   /**
-   * Utils
+   * Getters & Setters
    */
   getGameDifficulty() {
     return this.gameDifficulty;
   }
 
+  getGameDifficultyName() {
+    return GAME_DIFFICULTY_INFO.get(this.gameDifficulty)
+.name;
+  }
+
   getBottleNumber() {
     return GAME_DIFFICULTY_INFO.get(this.gameDifficulty).bottleCount;
+  }
+
+  getGameStatus() {
+    return this.gameStatus;
+  }
+
+  setGameStatus(status) {
+    this.gameStatus = status;
   }
 }

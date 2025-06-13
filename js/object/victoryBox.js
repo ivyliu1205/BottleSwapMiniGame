@@ -1,5 +1,6 @@
-import { renderBackgroundShadow } from '../utils/componentUtil';
+import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
 import BoxBase from '../base/boxBase';
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../render';
 
 export default class VictoryBox extends BoxBase {
   constructor() {
@@ -31,14 +32,14 @@ export default class VictoryBox extends BoxBase {
     this.onShareToMomentsCallback = callback;
   }
 
-  show(swapCount, correctCount, screenWidth, screenHeight) {
+  show(swapCount, correctCount, difficultyName) {
     this.isVisible = true;
     this.swapCount = swapCount;
     this.correctCount = correctCount;
+    this.difficultyName = difficultyName;
     
-    // 计算居中位置
-    this.x = (screenWidth - this.width) / 2;
-    this.y = (screenHeight - this.height) / 2;
+    this.x = (SCREEN_WIDTH - this.width) / 2;
+    this.y = (SCREEN_HEIGHT - this.height) / 2;
     this.buttonsStartY = this.y + this.height - 80;
   }
 
@@ -51,21 +52,18 @@ export default class VictoryBox extends BoxBase {
     this.drawBoxBackground(ctx, '#061A23', '#061A23');
     this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 12);
 
-    // 绘制胜利标题
-    ctx.fillStyle = '#49B265';
-    ctx.font = 'bold 24px Arial';
+    setFont(ctx, 25, '#49B265', true);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
     const titleX = this.x + this.width / 2;
-    const titleY = this.y + 40;
+    const titleY = this.y + 30;
     ctx.fillText('恭喜通关', titleX, titleY);
 
-    // 绘制统计信息
-    ctx.fillStyle = '#F3F2F3';
-    ctx.font = '18px Arial';
-    
-    ctx.fillText(`正确次数: ${this.correctCount}`, titleX, this.y + this.height / 2 - 20);
+    setFont(ctx, 20, '#F3F2F3');
+    const lineOneY = this.y + this.height / 2 - 40;
+    ctx.fillText(`难度: ${this.difficultyName}`, titleX, lineOneY);
+    ctx.fillText(`交换次数: ${this.correctCount}`, titleX, lineOneY + 35);
 
     // 绘制三个按钮
     const buttonY1 = this.buttonsStartY;

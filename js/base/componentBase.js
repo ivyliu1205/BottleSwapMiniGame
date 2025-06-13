@@ -15,7 +15,7 @@ export default class ComponentBase {
   /**
    * Callbacks
    */
-  setonClickCallback(callback) {
+  setOnClickCallback(callback) {
     this.onClickCallback = callback;
   }
 
@@ -39,6 +39,7 @@ export default class ComponentBase {
   }
 
   hide() {
+    console.log("SUPPER HIDE");
     this.isVisible = false;
     if (this.onHideCallback) {
       this.onHideCallback();
@@ -48,7 +49,7 @@ export default class ComponentBase {
   show() {
     this.isVisible = true;
     if (this.onShowCallback) {
-      this.onHideCallback();
+      this.onShowCallback();
     }
   }
 

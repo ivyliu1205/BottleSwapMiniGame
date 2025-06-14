@@ -80,8 +80,8 @@ export default class DataBus {
   }
 
   checkVictory() {
-    return true;
-    // return this.correctCnt == this.bottleIndexes.length;
+    // return true;
+    return this.correctCnt == this.bottleIndexes.length;
   }
 
   /**
@@ -100,7 +100,6 @@ export default class DataBus {
     }
     const i = this.prevSwap[0];
     const j = this.prevSwap[1];
-    console.log(`Back to prev step: ${i} and ${j}`);
     [this.bottleIndexes[i], this.bottleIndexes[j]] = [this.bottleIndexes[j], this.bottleIndexes[i]];
     this.correctCnt = this.getCorrectBottleCount();
     this.swapCnt -= 1;

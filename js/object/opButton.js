@@ -25,9 +25,8 @@ export default class OpButton extends ButtonBase {
     buttonName, x, y, size, 
     buttonType=BUTTON_TYPE.OP_BUTTON,
     buttonInfo=OPERATION_BUTTON_INFO) {
-    super(buttonType, x, y, size, size);
+    super(buttonName, buttonType, x, y, size, size);
 
-    this.buttonName = buttonName;
     this.img = wx.createImage();
     this.img.src = buttonInfo.get(buttonName);
 

@@ -39,7 +39,6 @@ export default class ComponentBase {
   }
 
   hide() {
-    console.log("SUPPER HIDE");
     this.isVisible = false;
     if (this.onHideCallback) {
       this.onHideCallback();

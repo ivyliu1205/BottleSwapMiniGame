@@ -34,13 +34,11 @@ export default class BoxBase extends ComponentBase {
     super.show();
     if (this.closeButton) {
       this.closeButton.show();
-      // 更新关闭按钮位置
       this.closeButton.setRelativePosition(this.x, this.y, this.width, this.height);
     }
   }
 
   hide() {
-    console.log("HIDEEEE");
     super.hide();
     if (this.closeButton) {
       this.closeButton.hide();
@@ -51,7 +49,6 @@ export default class BoxBase extends ComponentBase {
    * Handler
    */
   handleCloseButtonClick() {
-    console.log("Handler handleCloseButtonClick");
     this.hide();
     if (this.onClose) {
       this.onClose();
@@ -60,7 +57,6 @@ export default class BoxBase extends ComponentBase {
 
   handleCloseButton(x, y) {
     if (this.closeButton && this.closeButton.isVisible) {
-      console.log("ener handleCloseButton");
       return this.closeButton.handleClick(x, y);
     }
     return false;

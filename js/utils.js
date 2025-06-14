@@ -4,7 +4,6 @@ import { GAME_VERSION } from './constants';
 export function isFirstOpenWithVersion() {
   const storedVersion = wx.getStorageSync('gameVersion');
   if (storedVersion !== GAME_VERSION) {
-    console.log('第一次打开或版本更新');
     wx.setStorageSync('gameVersion', GAME_VERSION);
     wx.setStorageSync('hasOpened', true);
     return true;

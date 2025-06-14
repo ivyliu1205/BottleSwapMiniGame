@@ -9,12 +9,9 @@ export default class CloseButton extends ButtonBase {
   }
 
   handleClick(x, y) {
-    console.log("Close hanld click");
     if (!this.isVisible) return false;
     if (this.isPointInside(x, y)) {
-      console.log("Close hanld isPointInside");
       if (this.onClickCallback) {
-        console.log("Close hanld onClickCallback");
         this.onClickCallback();
       }
       return true;

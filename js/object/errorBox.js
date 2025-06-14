@@ -1,5 +1,5 @@
 import BoxBase from '../base/boxBase';
-import { renderBackgroundShadow } from '../utils/componentUtil';
+import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
 
 export default class ErrorBox extends BoxBase {
@@ -24,25 +24,24 @@ export default class ErrorBox extends BoxBase {
 
   render(ctx) {
     if (!this.isVisible) return;
-
     ctx.save();
     renderBackgroundShadow(ctx);
-    this.drawBoxBackground(ctx, '#E8464E', '#E8464E');
+    this.drawBoxBackground(ctx, '#D0637C', '#D0637C');
     this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 8);
+    this.drawContents(ctx);
+    ctx.restore();
+  }
 
-    // 绘制错误文本
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
+  /**
+   * Draw
+   */
+  drawContents(ctx) {
+    setFont(ctx, 20, '#ffffff', true);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
     const textX = this.x + this.width / 2;
     const textY = this.y + this.height / 2;
-    
     ctx.fillText(this.message, textX, textY);
-
-    // 恢复绘图状态
-    ctx.restore();
   }
-
 }

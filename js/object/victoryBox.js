@@ -1,6 +1,8 @@
 import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
 import BoxBase from '../base/boxBase';
+import InnerOpButton from '../object/innerOpButton';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../render';
+import { BUTTON_NAME, INNER_BUTTON_SIZE, INNER_BUTTON_SPACING } from '../constants';
 
 export default class VictoryBox extends BoxBase {
   constructor() {
@@ -8,28 +10,14 @@ export default class VictoryBox extends BoxBase {
     this.swapCount = 0;
     this.correctCount = 0;
 
-    this.buttonWidth = 100;
-    this.buttonHeight = 40;
-    this.buttonSpacing = 10; // 按钮间距
-    this.buttonsStartY = 0;
+    // Buttons
+    this.inner_buttons = [];
+    this.createInnerButtons();
 
-    // Callback functions
     this.onNewGameCallback = null;
+    this.onMoreOptionCallback = null;
     this.onShareToFriendCallback = null;
     this.onShareToMomentsCallback = null;
-  }
-
-  // 设置按钮回调
-  setOnNewGameCallback(callback) {
-    this.onNewGameCallback = callback;
-  }
-
-  setOnShareToFriendCallback(callback) {
-    this.onShareToFriendCallback = callback;
-  }
-
-  setOnShareToMomentsCallback(callback) {
-    this.onShareToMomentsCallback = callback;
   }
 
   show(swapCount, correctCount, difficultyName) {
@@ -40,134 +28,113 @@ export default class VictoryBox extends BoxBase {
     
     this.x = (SCREEN_WIDTH - this.width) / 2;
     this.y = (SCREEN_HEIGHT - this.height) / 2;
-    this.buttonsStartY = this.y + this.height - 80;
+
+    this.updateButtonPositions();
+    this.inner_buttons.forEach(button => button.show());
+  }
+
+  hide() {
+    super.hide();
+    this.inner_buttons.forEach(button => button.hide());
   }
 
   render(ctx) {
     if (!this.isVisible) return;
 
     ctx.save();
-
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#061A23', '#061A23');
     this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 12);
-
-    setFont(ctx, 25, '#49B265', true);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    const titleX = this.x + this.width / 2;
-    const titleY = this.y + 30;
-    ctx.fillText('恭喜通关', titleX, titleY);
-
-    setFont(ctx, 20, '#F3F2F3');
-    const lineOneY = this.y + this.height / 2 - 40;
-    ctx.fillText(`难度: ${this.difficultyName}`, titleX, lineOneY);
-    ctx.fillText(`交换次数: ${this.correctCount}`, titleX, lineOneY + 35);
-
-    // 绘制三个按钮
-    const buttonY1 = this.buttonsStartY;
-    const buttonY2 = this.buttonsStartY + this.buttonHeight + this.buttonSpacing;
-    
-    // 第一行：新游戏按钮（居中）
-    const newGameX = this.x + (this.width - this.buttonWidth) / 2;
-    this.drawButton(ctx, '新游戏', newGameX, buttonY1, '#4CAF50');
-
-    // 第二行：发送给朋友 和 发到朋友圈（左右并排）
-    const button2X = this.x + (this.width - this.buttonWidth * 2 - this.buttonSpacing) / 2;
-    const button3X = button2X + this.buttonWidth + this.buttonSpacing;
-    
-    this.drawButton(ctx, '发送给朋友', button2X, buttonY2, '#FF9800');
-    this.drawButton(ctx, '发到朋友圈', button3X, buttonY2, '#2196F3');
-
+    this.drawContents(ctx);
     ctx.restore();
-  }
-
-  drawButton(ctx, text, x, y, color) {
-    // 绘制按钮背景
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    
-    this.drawRoundedRect(ctx, x, y, this.buttonWidth, this.buttonHeight, 6);
-    ctx.fill();
-
-    // 绘制按钮文字
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    const textX = x + this.buttonWidth / 2;
-    const textY = y + this.buttonHeight / 2;
-    ctx.fillText(text, textX, textY);
-  }
-
-  // 检查是否点击了新游戏按钮
-  isNewGameButtonClicked(x, y) {
-    const buttonX = this.x + (this.width - this.buttonWidth) / 2;
-    const buttonY = this.buttonsStartY;
-    return x >= buttonX && 
-           x <= buttonX + this.buttonWidth && 
-           y >= buttonY && 
-           y <= buttonY + this.buttonHeight;
-  }
-
-  // 检查是否点击了发送给朋友按钮
-  isShareToFriendButtonClicked(x, y) {
-    const buttonX = this.x + (this.width - this.buttonWidth * 2 - this.buttonSpacing) / 2;
-    const buttonY = this.buttonsStartY + this.buttonHeight + this.buttonSpacing;
-    return x >= buttonX && 
-           x <= buttonX + this.buttonWidth && 
-           y >= buttonY && 
-           y <= buttonY + this.buttonHeight;
-  }
-
-  // 检查是否点击了发到朋友圈按钮
-  isShareToMomentsButtonClicked(x, y) {
-    const button2X = this.x + (this.width - this.buttonWidth * 2 - this.buttonSpacing) / 2;
-    const buttonX = button2X + this.buttonWidth + this.buttonSpacing;
-    const buttonY = this.buttonsStartY + this.buttonHeight + this.buttonSpacing;
-    return x >= buttonX && 
-           x <= buttonX + this.buttonWidth && 
-           y >= buttonY && 
-           y <= buttonY + this.buttonHeight;
   }
 
   handleClick(x, y) {
     super.handleClick(x, y);
-
-    if (this.isNewGameButtonClicked(x, y)) {
-      console.log("New game button clicked");
-      this.hide();
-      if (this.onNewGameCallback) {
-        this.onNewGameCallback();
-      }
-      return true;
+    for (let button of this.inner_buttons) {
+      if (button.handleClick(x, y)) return true;
     }
+    return this.isPointInside(x, y) ? true : false;
+  }
 
-    if (this.isShareToFriendButtonClicked(x, y)) {
-      console.log("Share to friend button clicked");
-      this.hide();
-      if (this.onShareToFriendCallback) {
-        this.onShareToFriendCallback();
-      }
-      return true;
-    }
+  /**
+   * Draw
+   */
+  drawContents(ctx) {
+    setFont(ctx, 30, '#49B265', true);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const titleX = this.x + this.width / 2;
+    const titleY = this.y + 40;
+    ctx.fillText('恭喜通关!', titleX, titleY);
 
-    if (this.isShareToMomentsButtonClicked(x, y)) {
-      console.log("Share to moments button clicked");
-      this.hide();
-      if (this.onShareToMomentsCallback) {
-        this.onShareToMomentsCallback();
-      }
-      return true;
-    }
+    setFont(ctx, 23, '#F3F2F3');
+    const lineOneY = this.y + this.height / 2 - 30;
+    ctx.fillText(`难度: ${this.difficultyName}`, titleX, lineOneY);
+    ctx.fillText(`交换次数: ${this.correctCount}`, titleX, lineOneY + 45);
 
-    // 如果点击在对话框内但不在按钮上，不做任何操作
-    if (this.isPointInside(x, y)) {
-      return true; // 阻止事件传播
-    }
-    return false;
+    this.inner_buttons.forEach(button => button.render(ctx));
+  }
+
+  /**
+   * Inner Operation Buttons
+   */
+  createInnerButtons() {
+    const buttonCallbacks = new Map([
+      [BUTTON_NAME.RESET, () => {
+        this.hide();
+        this.onNewGameCallback?.();
+      }],
+      [BUTTON_NAME.MORE, () => {
+        this.hide();
+        this.onMoreOptionCallback?.();
+      }],
+      [BUTTON_NAME.SHARE_TO_FRIEND, () => {
+        this.hide();
+        this.onShareToFriendCallback?.();
+      }],
+      [BUTTON_NAME.SHARE_TO_MOMENT, () => {
+        this.hide();
+        this.onShareToMomentsCallback?.();
+      }]
+    ]);
+    
+    this.resetButton = new InnerOpButton(BUTTON_NAME.RESET, INNER_BUTTON_SIZE, buttonCallbacks);
+
+    this.moreButton = new InnerOpButton(BUTTON_NAME.MORE, INNER_BUTTON_SIZE, buttonCallbacks);
+
+    this.shareToFriendButton = new InnerOpButton(BUTTON_NAME.SHARE_TO_FRIEND, INNER_BUTTON_SIZE, buttonCallbacks);
+
+    this.shareToMomentsButton = new InnerOpButton(BUTTON_NAME.SHARE_TO_MOMENT, INNER_BUTTON_SIZE, buttonCallbacks);
+
+    this.inner_buttons = [this.resetButton, this.moreButton, this.shareToFriendButton, this.shareToMomentsButton];
+  }
+
+  setOnNewGameCallback(callback) {
+    this.onNewGameCallback = callback;
+  }
+
+  setOnMoreOptionCallback(callback) {
+    this.onMoreOptionCallback = callback;
+  }
+
+  setOnShareToFriendCallback(callback) {
+    this.onShareToFriendCallback = callback;
+  }
+
+  setOnShareToMomentsCallback(callback) {
+    this.onShareToMomentsCallback = callback;
+  }
+
+  updateButtonPositions() {
+    const buttonsAreaY = this.y + this.height - 60;
+    const totalButtonsWidth = INNER_BUTTON_SIZE * 4 + INNER_BUTTON_SPACING * 3;
+    const startX = this.x + (this.width - totalButtonsWidth) / 2;
+    
+    this.resetButton.setPosition(startX, buttonsAreaY);
+    this.moreButton.setPosition(startX + INNER_BUTTON_SIZE + INNER_BUTTON_SPACING, buttonsAreaY);
+    this.shareToFriendButton.setPosition(startX + (INNER_BUTTON_SIZE + INNER_BUTTON_SPACING) * 2, buttonsAreaY);
+    this.shareToMomentsButton.setPosition(startX + (INNER_BUTTON_SIZE + INNER_BUTTON_SPACING) * 3, buttonsAreaY);
   }
 }

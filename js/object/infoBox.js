@@ -1,6 +1,6 @@
 import BoxBase from '../base/boxBase';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
-import { renderBackgroundShadow } from '../utils/componentUtil';
+import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
 
 export default class InfoBox extends BoxBase {
   constructor() {
@@ -45,12 +45,8 @@ export default class InfoBox extends BoxBase {
    * Handler
    */
   handleClick(x, y) {
-    console.log("Handle info click");
     if (!this.isVisible) return false;
-    if (this.handleCloseButton(x, y)) {
-      console.log("Handle info click handleCloseButton");
-      return true;
-    }
+    if (this.handleCloseButton(x, y)) return true;
     return false;
   }
 
@@ -58,17 +54,12 @@ export default class InfoBox extends BoxBase {
    * Draw
    */
   drawContent(ctx) {
-    console.log("Render drawContent");
-    
-    ctx.fillStyle = '#333333';
-    ctx.font = 'bold 24px Arial';
+    setFont(ctx, 24, '#333333', true);
     ctx.textAlign = 'center';
     ctx.fillText(this.title, this.x + this.width / 2, this.y + this.headerHeight);
     
-    ctx.font = '20px Arial';
-    ctx.fillStyle = '#6c757d';
+    setFont(ctx, 20, '#6c757d');
     ctx.textAlign = 'left';
-    
     this.content.forEach((line, index) => {
       const contentY = this.y + this.headerHeight + 50 + (index * this.lineHeight);
       ctx.fillText(line, this.x + this.padding, contentY);

@@ -33,6 +33,9 @@ export const BUTTON_NAME = {
   SHARE_TO_MOMENT: "Share_to_moment"
 } 
 
+// INNER OPERATION BUTTONS
+export const INNER_BUTTON_SIZE = 40;
+export const INNER_BUTTON_SPACING = 15;
 
 // BOTTLES
 export const BOTTLE_COLORS = [
@@ -60,7 +63,7 @@ export const BOTTLE_COLORS = [
 
 export const BOTTLE_WIDTH = 40;
 export const BOTTLE_HEIGHT = 100;
-export const BOTTLE_SPACE = 10;
+export const BOTTLE_SPACING = 10;
 export const MAX_BOTTLE_ROWS = 2;
 export const MAX_BOTTLE_PER_ROW = 5;
 

@@ -1,7 +1,7 @@
 import Pool from './base/pool';
 import ShareManager from './runtime/shareManager';
 import { GAME_DIFFICULTY, GAME_DIFFICULTY_INFO, GAME_STATUS } from './constants';
-import { isFirstOpenWithVersion, shuffleArray } from './utils';
+import { isFirstOpenWithVersion, shuffleArray } from './utils/commonUtil';
 
 let instance;
 

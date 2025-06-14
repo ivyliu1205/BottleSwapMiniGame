@@ -14,7 +14,7 @@ import InfoBox from '../object/infoBox';
 import ErrorBox from '../object/errorBox';
 import VictoryBox from '../object/victoryBox';
 import DifficultySelectorBox from '../object/difficultySelectorBox';
-import { isFirstOpenWithVersion } from '../utils';
+import { isFirstOpenWithVersion } from '../utils/commonUtil';
 import { setFont } from '../utils/componentUtil';
 import { calculateBottlePositions } from '../utils/bottleUtil';
 

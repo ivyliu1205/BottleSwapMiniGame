@@ -1,5 +1,5 @@
 
-import { GAME_VERSION } from './constants';
+import { GAME_VERSION } from '../constants';
 
 export function isFirstOpenWithVersion() {
   const storedVersion = wx.getStorageSync('gameVersion');

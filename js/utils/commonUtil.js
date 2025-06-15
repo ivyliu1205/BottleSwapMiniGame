@@ -2,13 +2,17 @@
 import { GAME_VERSION } from '../constants';
 
 export function isFirstOpenWithVersion() {
-  const storedVersion = wx.getStorageSync('gameVersion');
-  if (storedVersion !== GAME_VERSION) {
-    wx.setStorageSync('gameVersion', GAME_VERSION);
-    wx.setStorageSync('hasOpened', true);
+  try {
+    const hasOpened = wx.getStorageSync('hasOpened');
+    if (!hasOpened) {
+      wx.setStorageSync('hasOpened', true);
+      return true;
+    } else {
+      return false;
+    }
+  } catch (e) {
     return true;
   }
-  return false;
 }
 
 export function shuffleArray(array) {

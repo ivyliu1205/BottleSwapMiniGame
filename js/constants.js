@@ -33,6 +33,13 @@ export const BUTTON_NAME = {
   SHARE_TO_MOMENT: "Share_to_moment"
 } 
 
+export const ANIMATION_MODE = {
+  FAST: "fast",
+  SMOOTH: "smooth",
+  BOUNCY: "bouncy",
+  SLOW: "slow"
+}
+
 // INNER OPERATION BUTTONS
 export const INNER_BUTTON_SIZE = 40;
 export const INNER_BUTTON_SPACING = 15;

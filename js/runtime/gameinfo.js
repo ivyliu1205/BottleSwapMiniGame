@@ -1,6 +1,7 @@
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
 import Bottle from '../object/bottle';
 import { 
+  ANIMATION_MODE,
   BUTTON_NAME,
   BUTTON_SIZE,
   BUTTON_Y,
@@ -17,6 +18,7 @@ import DifficultySelectorBox from '../object/difficultySelectorBox';
 import { isFirstOpenWithVersion } from '../utils/commonUtil';
 import { setFont } from '../utils/componentUtil';
 import { calculateBottlePositions } from '../utils/bottleUtil';
+import BottleAnimationManager from './bottleAnimationManager';
 
 export default class GameInfo {
   bottles = [];
@@ -27,6 +29,9 @@ export default class GameInfo {
 
   constructor() {
     wx.onTouchStart(this.touchEventHandler.bind(this));
+
+    this.animationManager = new BottleAnimationManager();
+    this.setupAnimationCallbacks();
   }
 
   render(ctx) {
@@ -47,23 +52,23 @@ export default class GameInfo {
   renderVictoryBox() {
     if (!this.victoryBox) {
       this.victoryBox = new VictoryBox();
+      this.victoryBox.setOnHideCallback(() => {
+        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+      });
+  
+      this.victoryBox.setOnNewGameCallback(this.handleReset.bind(this));
+      this.victoryBox.setOnMoreOptionCallback(this.handleMore.bind(this));;
+  
+      this.victoryBox.setOnShareToFriendCallback(() => {
+        GameGlobal.databus.shareResultToFriend();
+        this.handleReset();
+      });
+      
+      this.victoryBox.setOnShareToMomentsCallback(() => {
+        GameGlobal.databus.shareResultToMoment();
+        this.handleReset();
+      });
     }
-    this.victoryBox.setOnHideCallback(() => {
-      GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
-    });
-
-    this.victoryBox.setOnNewGameCallback(this.handleReset.bind(this));
-    this.victoryBox.setOnMoreOptionCallback(this.handleMore.bind(this));;
-
-    this.victoryBox.setOnShareToFriendCallback(() => {
-      GameGlobal.databus.shareResultToFriend();
-      this.handleReset();
-    });
-    
-    this.victoryBox.setOnShareToMomentsCallback(() => {
-      GameGlobal.databus.shareResultToMoment();
-      this.handleReset();
-    });
     
     if (this.victoryBox && this.victoryBox.isVisible) {
       this.victoryBox.render(this.ctx);
@@ -102,10 +107,12 @@ export default class GameInfo {
   }
 
   renderBottles() {
-    while (this.bottles.length > 0) {
-      this.removeBottle(this.bottles.pop());
+    if (!this.animationManager.getIsAnimating()) {
+      while (this.bottles.length > 0) {
+        this.removeBottle(this.bottles.pop());
+      }
+      this.placeBottles();
     }
-    this.placeBottles();
     this.bottles.forEach((bottle) => {
       bottle.render(this.ctx);
     });
@@ -126,6 +133,12 @@ export default class GameInfo {
     setFont(this.ctx, 20);
     this.ctx.fillText(`交换次数: ${GameGlobal.databus.swapCnt}`, 20, 125);
     this.ctx.fillText(`正确个数: ${GameGlobal.databus.correctCnt}`, 20, 155);
+    
+    // DEBUG only
+    // if (this.animationManager.getIsAnimating()) {
+    //   const progress = Math.round(this.animationManager.getAnimationProgress() * 100);
+    //   this.ctx.fillText(`动画进度: ${progress}%`, 20, 185);
+    // }
   }
 
   renderOpButtons() {
@@ -211,11 +224,22 @@ export default class GameInfo {
   }
 
   handleReset() {
+    this.animationManager.cancelAnimation();
+    this.bottleClicked = [];
     GameGlobal.databus.initNewGame();
     this.render(this.ctx);
   }
 
   handleBack() {
+    if (this.animationManager.getIsAnimating()) {
+      wx.showToast({
+        title: '动画进行中，请稍后...',
+        icon: 'none',
+        duration: 1000
+      });
+      return;
+    }
+    
     this.bottleClicked = [];
     const backStatus = GameGlobal.databus.backToPrevStep();
     if (!backStatus) {
@@ -247,9 +271,19 @@ export default class GameInfo {
   }
 
   handleBottleSwap(x, y) {
+    if (this.animationManager.getIsAnimating()) {
+      wx.showToast({
+        title: '动画进行中，请稍后...',
+        icon: 'none',
+        duration: 500
+      });
+      return;
+    }
+
     for (let idx = 0; idx < this.bottles.length; idx++) {
       const bottle = this.bottles[idx];
       if (!bottle.isPointInside(x, y)) continue;
+      
       if (this.bottleClicked.length == 1 && idx == this.bottleClicked[0]) {
         wx.showToast({
           title: '不能交换同一个瓶子，请选择其他瓶子',
@@ -261,17 +295,21 @@ export default class GameInfo {
 
       bottle.renderClick(this.ctx);
       this.bottleClicked.push(idx);
+      
       if (this.bottleClicked.length == 2) {
-        GameGlobal.databus.swapBottles(
+        // 使用动画管理器开始动画
+        const success = this.animationManager.startSwapAnimation(
+          this.bottles[this.bottleClicked[0]],
+          this.bottles[this.bottleClicked[1]],
           this.bottleClicked[0],
           this.bottleClicked[1]
         );
-        this.bottleClicked = [];
-
-        if (GameGlobal.databus.checkVictory()) {
-          this.changeIntoVictory();
+        
+        if (!success) {
+          console.warn('Failed to start animation');
         }
-        this.render(this.ctx);
+        
+        this.bottleClicked = [];
       }
     }
   }
@@ -304,6 +342,30 @@ export default class GameInfo {
       GameGlobal.databus.getGameDifficultyName()
     );
     GameGlobal.databus.setGameStatus(GAME_STATUS.VICTORY);
+  }
+
+  /**
+   * Animation
+   */
+  setupAnimationCallbacks() {
+    this.animationManager.setOnAnimationUpdate(() => {
+      this.render(this.ctx);
+    });
+
+    this.animationManager.setOnAnimationComplete((animationData) => {
+      this.handleAnimationComplete(animationData);
+    });
+
+    this.animationManager.setPreset(ANIMATION_MODE.FAST);
+  }
+
+  handleAnimationComplete(animationData) {
+    const [index1, index2] = animationData.indices;
+    GameGlobal.databus.swapBottles(index1, index2);
+    if (GameGlobal.databus.checkVictory()) {
+      this.changeIntoVictory();
+    }
+    this.render(this.ctx);
   }
 
   /**

@@ -52,21 +52,16 @@ export default class GameInfo {
   renderVictoryBox() {
     if (!this.victoryBox) {
       this.victoryBox = new VictoryBox();
-      this.victoryBox.setOnHideCallback(() => {
-        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
-      });
-  
       this.victoryBox.setOnNewGameCallback(this.handleReset.bind(this));
-      this.victoryBox.setOnMoreOptionCallback(this.handleMore.bind(this));;
-  
+      this.victoryBox.setOnMoreOptionCallback(this.handleMore.bind(this));
       this.victoryBox.setOnShareToFriendCallback(() => {
         GameGlobal.databus.shareResultToFriend();
-        this.handleReset();
+        this.changeIntoVictory();
       });
       
       this.victoryBox.setOnShareToMomentsCallback(() => {
         GameGlobal.databus.shareResultToMoment();
-        this.handleReset();
+        this.changeIntoVictory();
       });
     }
     
@@ -94,9 +89,14 @@ export default class GameInfo {
 
       this.difficultySelectorBox.setOnDifficultySelect((difficulty) => {
         GameGlobal.databus.updateDifficulty(GAME_DIFFICULTY[difficulty.toUpperCase()]);
-        this.render(this.ctx);
+        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       });
-      this.difficultySelectorBox.setOnClose(() => {this.render(this.ctx);});
+
+      this.difficultySelectorBox.setOnClose(() => {
+        if (GameGlobal.databus.getGameStatus() == GAME_STATUS.VICTORY) {
+          this.changeIntoVictory();
+        } 
+      });
     }
     this.difficultySelectorBox.render(this.ctx);
   }
@@ -161,10 +161,15 @@ export default class GameInfo {
 
   touchEventHandler(event) {
     const { clientX, clientY } = event.touches[0];
-
     switch(GameGlobal.databus.getGameStatus()) {
       case GAME_STATUS.VICTORY:
-        if (this.victoryBox && this.victoryBox.handleClick(clientX, clientY)) {
+        if (this.victoryBox && 
+          this.victoryBox.handleClick(clientX, clientY)) {
+          this.render(this.ctx);
+          return;
+        }
+        if (this.difficultySelectorBox && 
+          this.difficultySelectorBox.handleClick(clientX, clientY)) {
           this.render(this.ctx);
           return;
         }
@@ -224,6 +229,7 @@ export default class GameInfo {
   }
 
   handleReset() {
+    GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
     this.animationManager.cancelAnimation();
     this.bottleClicked = [];
     GameGlobal.databus.initNewGame();

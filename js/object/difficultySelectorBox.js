@@ -51,7 +51,6 @@ export default class DifficultySelectorBox extends BoxBase {
 
     if (x >= contentX && x <= contentX + contentWidth && 
         y >= contentY && y <= contentY + contentHeight) {
-      
       const relativeY = y - contentY;
       const itemIndex = Math.floor(relativeY / (this.itemHeight + this.itemPadding));
       

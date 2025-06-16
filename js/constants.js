@@ -89,8 +89,8 @@ export const GAME_DIFFICULTIES = [
 
 export const GAME_DIFFICULTY_INFO = new Map(
   [
-    [GAME_DIFFICULTY.EASY, {name: '简单', description: '适合新手，较少瓶子', bottleCount: 5 }],
-    [GAME_DIFFICULTY.MEDIUM, {name: '中等', description: '适中难度，平衡挑战', bottleCount: 10 }],
-    [GAME_DIFFICULTY.HARD, {name: '困难', description: '高难度，更多瓶子', bottleCount: 15 }],
+    [GAME_DIFFICULTY.EASY, {name: '简单', description: '适合新手，较少瓶子', bottleCount: 5, gaveEnable: 10 }],
+    [GAME_DIFFICULTY.MEDIUM, {name: '中等', description: '适中难度，平衡挑战', bottleCount: 10, gaveEnable: 10 }],
+    [GAME_DIFFICULTY.HARD, {name: '困难', description: '高难度，更多瓶子', bottleCount: 15, gaveEnable: 10 }],
   ]
 );

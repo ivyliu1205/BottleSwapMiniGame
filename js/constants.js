@@ -9,6 +9,15 @@ export const GAME_STATUS = {
   ERROR: 'error'
 }
 
+export const GAME_INSTRUCTION = [
+  "• 点击两个瓶子进行交换",
+  "• 直到找到瓶子正确位置",
+  "• 正确个数展示在左上角",
+  "• 使用重置按钮重新开始",
+  "• 使用返回按钮撤销操作",
+  "• 使用更多按钮修改难度"
+]
+
 // GAME UI
 export const GAME_DESCRIPTION = `Swap bottles find correct order!`;
 export const BUTTON_WIDTH = 80;
@@ -21,16 +30,18 @@ export const BUTTON_TYPE = {
   OP_BUTTON: "op_button",
   INNER_OP_BUTTON: "inner_op_button",
   CLOSE_BUTTON: "close_button",
+  NORMAL_TEXT_BUTTON: "normal_text_button",
   OTHERS: "others"
 }
 
 export const BUTTON_NAME = {
+  HINT: "ViewHint",
   MORE: "More",
   INFO: "Info",
   RESET: "Reset",
   BACK: "Back",
-  SHARE_TO_FRIEND: "Share2_to_friend",
-  SHARE_TO_MOMENT: "Share_to_moment"
+  SHARE_TO_FRIEND: "ShareToFriend",
+  SHARE_TO_MOMENT: "ShareToMoment"
 } 
 
 export const ANIMATION_MODE = {

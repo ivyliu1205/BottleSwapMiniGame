@@ -1,5 +1,5 @@
 import { GAME_DIFFICULTY_INFO, GAME_DIFFICULTIES } from '../constants';
-import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
 import BoxBase from '../base/boxBase';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../render';
 
@@ -73,7 +73,7 @@ export default class DifficultySelectorBox extends BoxBase {
     if (!this.isVisible) return;
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
-    this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
+    renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
 
     setFont(ctx, 24, '#333333', true);
     ctx.textAlign = 'center';
@@ -98,7 +98,7 @@ export default class DifficultySelectorBox extends BoxBase {
     const difficulty_info = GAME_DIFFICULTY_INFO.get(difficulty);
 
     this.drawBoxBackground(ctx, '#f8f9fa', '#e9ecef');
-    this.drawRoundedRect(ctx, x, y, width, this.itemHeight, 8);
+    renderRoundedRect(ctx, x, y, width, this.itemHeight, 8);
 
     setFont(ctx, 20, '#212529', true);
     ctx.textAlign = 'left';

@@ -1,4 +1,4 @@
-import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
 import BoxBase from '../base/boxBase';
 import InnerOpButton from '../object/innerOpButton';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../render';
@@ -44,7 +44,7 @@ export default class VictoryBox extends BoxBase {
     ctx.save();
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#061A23', '#061A23');
-    this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 12);
+    renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 12);
     this.drawContents(ctx);
     ctx.restore();
   }

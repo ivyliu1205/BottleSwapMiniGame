@@ -1,6 +1,7 @@
 import BoxBase from '../base/boxBase';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
-import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
+import { GAME_INSTRUCTION } from '../constants';
 
 export default class InfoBox extends BoxBase {
   constructor() {
@@ -11,14 +12,7 @@ export default class InfoBox extends BoxBase {
     this.headerHeight = 60;
     
     this.title = "游戏说明";
-    this.content = [
-      "• 点击两个瓶子进行交换",
-      "• 直到找到瓶子正确位置",
-      "• 正确个数展示在左上角",
-      "• 使用重置按钮重新开始",
-      "• 使用返回按钮撤销操作",
-      "• 使用更多按钮修改难度"
-    ];
+    this.content = GAME_INSTRUCTION;
   }
 
   show() {
@@ -34,7 +28,7 @@ export default class InfoBox extends BoxBase {
     ctx.save();
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
-    this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
+    renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
     this.drawCloseButton(ctx);
 
     this.drawContent(ctx);

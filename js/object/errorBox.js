@@ -1,5 +1,5 @@
 import BoxBase from '../base/boxBase';
-import { renderBackgroundShadow, setFont } from '../utils/componentUtil';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
 
 export default class ErrorBox extends BoxBase {
@@ -27,7 +27,7 @@ export default class ErrorBox extends BoxBase {
     ctx.save();
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#D0637C', '#D0637C');
-    this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, 8);
+    renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 8);
     this.drawContents(ctx);
     ctx.restore();
   }

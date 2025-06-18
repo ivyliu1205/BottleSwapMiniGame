@@ -12,13 +12,13 @@ import {
 } from '../constants';
 import OpButton, { OPERATION_BUTTONS } from '../object/opButton';
 import InfoBox from '../object/infoBox';
-import ErrorBox from '../object/errorBox';
 import VictoryBox from '../object/victoryBox';
 import DifficultySelectorBox from '../object/difficultySelectorBox';
 import { isFirstOpenWithVersion } from '../utils/commonUtil';
 import { setFont } from '../utils/componentUtil';
 import { calculateBottlePositions } from '../utils/bottleUtil';
 import BottleAnimationManager from './bottleAnimationManager';
+import ConfirmBox from '../object/confirmBox';
 
 export default class GameInfo {
   bottles = [];
@@ -42,7 +42,7 @@ export default class GameInfo {
     this.renderBottles();
     this.renderVictoryBox();
     this.renderInfoBox();
-    this.renderErrorBox();
+    this.renderConfirmBox();
     this.renderDifficultySelectorBox();
     if (isFirstOpenWithVersion()) {
       this.handleInfo();
@@ -75,12 +75,24 @@ export default class GameInfo {
     this.infoBox.render(this.ctx);
   }
 
-  renderErrorBox() {
-    this.errorBox = this.errorBox ? this.errorBox : this.errorBox = new ErrorBox();
-    this.errorBox.setOnHideCallback(() => {
-      GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
-    });
-    this.errorBox.render(this.ctx);
+  renderConfirmBox() {
+    if (!this.confirmBox) {
+      this.confirmBox = new ConfirmBox();
+
+      this.confirmBox.setOnConfirm(() => {
+        console.log("Click confirm");
+      });
+
+      this.confirmBox.setOnCancel(() => {
+        console.log("Click cancel");
+        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+      });
+    }
+
+    if (this.confirmBox.isVisible) {
+      GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
+      this.confirmBox.render(this.ctx);
+    }
   }
 
   renderDifficultySelectorBox() {
@@ -133,12 +145,6 @@ export default class GameInfo {
     setFont(this.ctx, 20);
     this.ctx.fillText(`交换次数: ${GameGlobal.databus.swapCnt}`, 20, 125);
     this.ctx.fillText(`正确个数: ${GameGlobal.databus.correctCnt}`, 20, 155);
-    
-    // DEBUG only
-    // if (this.animationManager.getIsAnimating()) {
-    //   const progress = Math.round(this.animationManager.getAnimationProgress() * 100);
-    //   this.ctx.fillText(`动画进度: ${progress}%`, 20, 185);
-    // }
   }
 
   renderOpButtons() {
@@ -174,14 +180,15 @@ export default class GameInfo {
           return;
         }
         break;
-      case GAME_STATUS.ERROR:
-        if (this.errorBox && this.errorBox.handleClick(clientX, clientY)) {
+      case GAME_STATUS.INFO:
+        if (this.infoBox && this.handleInfoBox(clientX, clientY)) {
           this.render(this.ctx);
           return;
         }
-        break;
-      case GAME_STATUS.INFO:
-        this.handleInfoBox(clientX, clientY);
+        if (this.confirmBox && this.confirmBox.handleClick(clientX, clientY)) {
+          this.render(this.ctx);
+          return;
+        }
         break;
       case GAME_STATUS.PLAYING:
       default:
@@ -190,7 +197,9 @@ export default class GameInfo {
             this.render(this.ctx);
             return;
         }
-        this.handleOpButtons(clientX, clientY);
+        if (this.handleOpButtons(clientX, clientY)) {
+          return;
+        }
         this.handleBottleSwap(clientX, clientY);
         break;
     }
@@ -213,10 +222,15 @@ export default class GameInfo {
       case BUTTON_NAME.MORE:
         this.handleMore();
         break;
+
+      case BUTTON_NAME.HINT:
+        this.handleHint();
+        break;
         
       default:
         console.warn(`Unknown button: ${buttonName}`);
     }
+    this.render(this.ctx);
   }
 
   handleOpButtons(x, y) {
@@ -233,26 +247,19 @@ export default class GameInfo {
     this.animationManager.cancelAnimation();
     this.bottleClicked = [];
     GameGlobal.databus.initNewGame();
-    this.render(this.ctx);
   }
 
   handleBack() {
-    if (this.animationManager.getIsAnimating()) {
-      wx.showToast({
-        title: '动画进行中，请稍后...',
-        icon: 'none',
-        duration: 1000
-      });
-      return;
-    }
-    
+    this.handleAnimationInProgress();
     this.bottleClicked = [];
     const backStatus = GameGlobal.databus.backToPrevStep();
-    if (!backStatus) {
-      this.errorBox.show('超过后退次数，无法后退！');
-      GameGlobal.databus.setGameStatus(GAME_STATUS.ERROR);
+    if (!backStatus[0]) {
+      wx.showToast({
+        title: backStatus[1],
+        icon: 'error',
+        duration: 2000
+      });
     }
-    this.render(this.ctx);
   }
 
   handleInfo() {
@@ -265,31 +272,29 @@ export default class GameInfo {
         this.infoBox.show();
         GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       }
-      this.render(this.ctx);
     }
   }
 
   handleMore() {
     if (this.difficultySelectorBox) {
       this.difficultySelectorBox.show();
-      this.render(this.ctx);
     }
   }
 
+  handleHint() {
+    console.log("Show Hint");
+    this.confirmBox.show('使用提示', ['是否要查看答案？', '查看会导致步数+10']);
+    GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
+  }
+
   handleBottleSwap(x, y) {
-    if (this.animationManager.getIsAnimating()) {
-      wx.showToast({
-        title: '动画进行中，请稍后...',
-        icon: 'none',
-        duration: 500
-      });
-      return;
-    }
+    this.handleAnimationInProgress();
+    var isBottleClicked = false;
 
     for (let idx = 0; idx < this.bottles.length; idx++) {
       const bottle = this.bottles[idx];
       if (!bottle.isPointInside(x, y)) continue;
-      
+      isBottleClicked = true;
       if (this.bottleClicked.length == 1 && idx == this.bottleClicked[0]) {
         wx.showToast({
           title: '不能交换同一个瓶子，请选择其他瓶子',
@@ -303,20 +308,25 @@ export default class GameInfo {
       this.bottleClicked.push(idx);
       
       if (this.bottleClicked.length == 2) {
-        // 使用动画管理器开始动画
-        const success = this.animationManager.startSwapAnimation(
+        this.animationManager.startSwapAnimation(
           this.bottles[this.bottleClicked[0]],
           this.bottles[this.bottleClicked[1]],
-          this.bottleClicked[0],
-          this.bottleClicked[1]
+          ...this.bottleClicked
         );
-        
-        if (!success) {
-          console.warn('Failed to start animation');
-        }
-        
         this.bottleClicked = [];
       }
+    }
+
+    if (!isBottleClicked && this.bottleClicked.length > 0) {
+      this.clearBottleSelection();
+      this.render(this.ctx);
+    }
+  }
+
+  clearBottleSelection() {
+    while (this.bottleClicked.length > 0) {
+      const bottleIndex = this.bottleClicked.pop();
+      this.bottles[bottleIndex].clearState();
     }
   }
 
@@ -372,6 +382,17 @@ export default class GameInfo {
       this.changeIntoVictory();
     }
     this.render(this.ctx);
+  }
+
+  handleAnimationInProgress() {
+    if (this.animationManager.getIsAnimating()) {
+      wx.showToast({
+        title: '动画进行中，请稍后...',
+        icon: 'none',
+        duration: 500
+      });
+      return;
+    }
   }
 
   /**

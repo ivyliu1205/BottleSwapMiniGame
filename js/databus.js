@@ -1,7 +1,7 @@
 import Pool from './base/pool';
 import ShareManager from './runtime/shareManager';
 import { GAME_DIFFICULTY, GAME_DIFFICULTY_INFO, GAME_STATUS } from './constants';
-import { isFirstOpenWithVersion, shuffleArray } from './utils/commonUtil';
+import { isFirstOpenWithVersion, shuffleArray, swapArrayItems } from './utils/commonUtil';
 
 let instance;
 
@@ -88,7 +88,7 @@ export default class DataBus {
    * Bottles
    */
   swapBottles(i, j) {
-    [this.bottleIndexes[i], this.bottleIndexes[j]] = [this.bottleIndexes[j], this.bottleIndexes[i]];
+    swapArrayItems(this.bottleIndexes, i, j);
     this.correctCnt = this.getCorrectBottleCount();
     this.swapCnt += 1;
     this.prevSwap = [i, j];
@@ -96,15 +96,17 @@ export default class DataBus {
 
   backToPrevStep() {
     if (this.prevSwap == DEFAULT_PREV_SWAP) {
-      return false;
+      var errorMsg = '只能后退一步';
+      if (this.swapCnt == 0) {
+        errorMsg = '请先移动瓶子';
+      }
+      return [false, errorMsg];
     }
-    const i = this.prevSwap[0];
-    const j = this.prevSwap[1];
-    [this.bottleIndexes[i], this.bottleIndexes[j]] = [this.bottleIndexes[j], this.bottleIndexes[i]];
+    swapArrayItems(this.bottleIndexes, ...this.prevSwap);
     this.correctCnt = this.getCorrectBottleCount();
-    this.swapCnt -= 1;
+    this.swapCnt += 1;
     this.prevSwap = DEFAULT_PREV_SWAP;
-    return true;
+    return [true, null];
   }
 
   /**

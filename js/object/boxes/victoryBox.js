@@ -1,8 +1,8 @@
-import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
-import BoxBase from '../base/boxBase';
-import InnerOpButton from '../object/innerOpButton';
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../render';
-import { BUTTON_NAME, INNER_BUTTON_SIZE, INNER_BUTTON_SPACING } from '../constants';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
+import BoxBase from '../../base/boxBase';
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../render';
+import { BUTTON_NAME, INNER_BUTTON_SIZE, INNER_BUTTON_SPACING } from '../../constants';
+import InnerOpButton from '../buttons/innerOpButton';
 
 export default class VictoryBox extends BoxBase {
   constructor() {

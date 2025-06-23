@@ -51,6 +51,11 @@ export const ANIMATION_MODE = {
   SLOW: "slow"
 }
 
+// BOXES
+export const LARGE_BOX_WIDTH = 300;
+export const LARGE_BOX_HEIGHT = 370;
+export const LARGE_BOX_HEADER_HEIGHT = 60;
+
 // INNER OPERATION BUTTONS
 export const INNER_BUTTON_SIZE = 40;
 export const INNER_BUTTON_SPACING = 15;

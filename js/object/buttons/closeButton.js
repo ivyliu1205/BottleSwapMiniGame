@@ -1,5 +1,5 @@
-import ButtonBase from "../base/buttonBase";
-import { BUTTON_TYPE } from "../constants";
+import ButtonBase from "../../base/buttonBase";
+import { BUTTON_TYPE } from "../../constants";
 
 export default class CloseButton extends ButtonBase {
   constructor(size = 20) {
@@ -20,7 +20,9 @@ export default class CloseButton extends ButtonBase {
   }
 
   render(ctx) {
+    console.log("Button renderrr 1");
     if (!this.isVisible)  return;
+    console.log("Button renderrr 2");
     ctx.save();
     ctx.fillStyle = '#ff4757';
     ctx.beginPath();

@@ -80,8 +80,8 @@ export default class DataBus {
   }
 
   checkVictory() {
-    // return true;
-    return this.correctCnt == this.bottleIndexes.length;
+    return true;
+    // return this.correctCnt == this.bottleIndexes.length;
   }
 
   /**
@@ -142,5 +142,9 @@ export default class DataBus {
 
   setGameStatus(status) {
     this.gameStatus = status;
+  }
+
+  getExpectedBottleIndexes() {
+    return this.expectedBottleIndexes;
   }
 }

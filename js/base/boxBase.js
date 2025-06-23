@@ -1,5 +1,5 @@
 import ComponentBase from '../base/componentBase';
-import CloseButton from '../object/closeButton';
+import CloseButton from '../object/buttons/closeButton';
 
 export default class BoxBase extends ComponentBase {
   constructor(width, height, showCloseButton = false) {
@@ -10,6 +10,7 @@ export default class BoxBase extends ComponentBase {
     this.closeButton = null;
     
     if (this.showCloseButton) {
+      console.log("Draaw showCloseButton");
       this.closeButton = new CloseButton(30);
       this.closeButton.setOnClickCallback(() => {
         this.handleCloseButtonClick();
@@ -82,7 +83,9 @@ export default class BoxBase extends ComponentBase {
   }
 
   drawCloseButton(ctx) {
+    console.log("drawCloseButton");
     if (this.closeButton && this.closeButton.isVisible) {
+      console.log("drawCloseButton 2");
       this.closeButton.render(ctx);
     }
   }

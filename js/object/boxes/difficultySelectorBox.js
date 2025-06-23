@@ -1,14 +1,14 @@
-import { GAME_DIFFICULTY_INFO, GAME_DIFFICULTIES } from '../constants';
-import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
-import BoxBase from '../base/boxBase';
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../render';
+import { GAME_DIFFICULTY_INFO, GAME_DIFFICULTIES, LARGE_BOX_WIDTH, LARGE_BOX_HEIGHT, LARGE_BOX_HEADER_HEIGHT } from '../../constants';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
+import BoxBase from '../../base/boxBase';
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../render';
 
 export default class DifficultySelectorBox extends BoxBase {
   constructor() {
-    super(300, 370, true);
+    super(LARGE_BOX_WIDTH, LARGE_BOX_HEIGHT, true);
     this.itemHeight = 80;
     this.itemPadding = 20;
-    this.headerHeight = 60;
+    this.headerHeight = LARGE_BOX_HEADER_HEIGHT;
 
     // Callback functions
     this.onDifficultySelect = null;

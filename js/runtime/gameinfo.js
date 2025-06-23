@@ -10,15 +10,16 @@ import {
   GAME_DIFFICULTY_INFO,
   GAME_STATUS
 } from '../constants';
-import OpButton, { OPERATION_BUTTONS } from '../object/opButton';
-import InfoBox from '../object/infoBox';
-import VictoryBox from '../object/victoryBox';
-import DifficultySelectorBox from '../object/difficultySelectorBox';
+import OpButton, { OPERATION_BUTTONS } from '../object/buttons/opButton';
+import InfoBox from '../object/boxes/infoBox';
+import VictoryBox from '../object/boxes/victoryBox';
+import DifficultySelectorBox from '../object/boxes/difficultySelectorBox';
 import { isFirstOpenWithVersion } from '../utils/commonUtil';
 import { setFont } from '../utils/componentUtil';
 import { calculateBottlePositions } from '../utils/bottleUtil';
 import BottleAnimationManager from './bottleAnimationManager';
-import ConfirmBox from '../object/confirmBox';
+import ConfirmBox from '../object/boxes/confirmBox';
+import HintBox from '../object/boxes/hintBox';
 
 export default class GameInfo {
   bottles = [];
@@ -43,6 +44,7 @@ export default class GameInfo {
     this.renderVictoryBox();
     this.renderInfoBox();
     this.renderConfirmBox();
+    this.renderHintBox();
     this.renderDifficultySelectorBox();
     if (isFirstOpenWithVersion()) {
       this.handleInfo();
@@ -71,27 +73,60 @@ export default class GameInfo {
   }
 
   renderInfoBox() {
-    this.infoBox = this.infoBox ? this.infoBox : this.infoBox = new InfoBox();
-    this.infoBox.render(this.ctx);
+    if (!this.infoBox) {
+      this.infoBox = new InfoBox();
+      this.infoBox.setOnShowCallback(() => {
+        GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
+      });
+      this.infoBox.setOnHideCallback(() => {
+        console.log("00");
+        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+      });
+    }
+    if (this.infoBox.isVisible) {
+      this.infoBox.render(this.ctx);
+    }
   }
 
   renderConfirmBox() {
     if (!this.confirmBox) {
       this.confirmBox = new ConfirmBox();
 
+      this.confirmBox.setOnShowCallback(() => {
+        console.log("11");
+        GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
+      });
+
       this.confirmBox.setOnConfirm(() => {
-        console.log("Click confirm");
+        this.hintBox.show(GameGlobal.databus.getExpectedBottleIndexes());
       });
 
       this.confirmBox.setOnCancel(() => {
-        console.log("Click cancel");
+        console.log("1");
         GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       });
     }
 
     if (this.confirmBox.isVisible) {
-      GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       this.confirmBox.render(this.ctx);
+    }
+  }
+
+  renderHintBox() {
+    if (!this.hintBox) {
+      this.hintBox = new HintBox();
+
+      this.hintBox.setOnShowCallback(() => {
+        GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
+      });
+      
+      this.hintBox.setOnHideCallback(() => {
+        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+      });
+    }
+    
+    if (this.hintBox && this.hintBox.isVisible) {
+      this.hintBox.render(this.ctx);
     }
   }
 
@@ -101,6 +136,7 @@ export default class GameInfo {
 
       this.difficultySelectorBox.setOnDifficultySelect((difficulty) => {
         GameGlobal.databus.updateDifficulty(GAME_DIFFICULTY[difficulty.toUpperCase()]);
+        console.log("3");
         GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       });
 
@@ -167,7 +203,10 @@ export default class GameInfo {
 
   touchEventHandler(event) {
     const { clientX, clientY } = event.touches[0];
-    switch(GameGlobal.databus.getGameStatus()) {
+    const gameStatus = GameGlobal.databus.getGameStatus();
+    console.log('Touch event:', clientX, clientY, 'Game status:', gameStatus);
+  
+    switch(gameStatus) {
       case GAME_STATUS.VICTORY:
         if (this.victoryBox && 
           this.victoryBox.handleClick(clientX, clientY)) {
@@ -181,11 +220,15 @@ export default class GameInfo {
         }
         break;
       case GAME_STATUS.INFO:
-        if (this.infoBox && this.handleInfoBox(clientX, clientY)) {
+        if (this.infoBox && this.infoBox.handleClick(clientX, clientY)) {
           this.render(this.ctx);
           return;
         }
         if (this.confirmBox && this.confirmBox.handleClick(clientX, clientY)) {
+          this.render(this.ctx);
+          return;
+        }
+        if (this.hintBox && this.hintBox.handleClick(clientX, clientY)) {
           this.render(this.ctx);
           return;
         }
@@ -243,6 +286,7 @@ export default class GameInfo {
   }
 
   handleReset() {
+    console.log("4");
     GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
     this.animationManager.cancelAnimation();
     this.bottleClicked = [];
@@ -267,10 +311,8 @@ export default class GameInfo {
     if (infoButton) {
       if (this.infoBox.isVisible) {
         this.infoBox.hide();
-        GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       } else {
         this.infoBox.show();
-        GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       }
     }
   }
@@ -328,24 +370,6 @@ export default class GameInfo {
       const bottleIndex = this.bottleClicked.pop();
       this.bottles[bottleIndex].clearState();
     }
-  }
-
-  handleInfoBox(x, y) {
-    if (this.infoBox.isPointInside(x, y)) {
-      if (this.infoBox.handleClick(x, y)) {
-        this.render(this.ctx);
-      }
-      return;
-    }
-    const infoButton = this.opButtons.get(BUTTON_NAME.INFO);
-    if (infoButton && infoButton.isPointInside(x, y)) {
-      this.handleInfo();
-      return;
-    }
-    
-    this.infoBox.hide();
-    GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
-    this.render(this.ctx);
   }
 
   /**

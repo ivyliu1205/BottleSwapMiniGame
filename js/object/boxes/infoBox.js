@@ -1,7 +1,7 @@
-import BoxBase from '../base/boxBase';
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
-import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
-import { GAME_INSTRUCTION } from '../constants';
+import BoxBase from '../../base/boxBase';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
+import { GAME_INSTRUCTION } from '../../constants';
 
 export default class InfoBox extends BoxBase {
   constructor() {
@@ -41,6 +41,11 @@ export default class InfoBox extends BoxBase {
   handleClick(x, y) {
     if (!this.isVisible) return false;
     if (this.handleCloseButton(x, y)) return true;
+
+    if (!this.isPointInside(x, y)) {
+      this.hide();
+      return true;
+    } 
     return false;
   }
 

@@ -1,5 +1,5 @@
-import OpButton from '../object/opButton';
-import { BUTTON_NAME, BUTTON_TYPE } from '../constants';
+import OpButton from './opButton';
+import { BUTTON_NAME, BUTTON_TYPE } from '../../constants';
 
 const RESET_BUTTON_IMG_SRC = 'images/restart-white.png';
 const MORE_BUTTON_IMG_SRC = 'images/more-white.png';

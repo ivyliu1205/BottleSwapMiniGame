@@ -1,7 +1,7 @@
-import BoxBase from '../base/boxBase';
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
-import { setFont, renderBackgroundShadow, renderRoundedRect } from '../utils/componentUtil';
-import NormalButton, { NORMAL_BUTTON_TYPE, NORMAL_BUTTON_SIZE } from '../object/buttons/normalButton';
+import BoxBase from '../../base/boxBase';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render';
+import { setFont, renderBackgroundShadow, renderRoundedRect } from '../../utils/componentUtil';
+import NormalButton, { NORMAL_BUTTON_TYPE, NORMAL_BUTTON_SIZE } from '../buttons/normalButton';
 
 const CONFIRM_BOX_WIDTH = 300;
 const CONFIRM_BOX_HEIGHT = 200;
@@ -26,19 +26,39 @@ export default class ConfirmBox extends BoxBase {
    */
   render(ctx) {
     if (!this.isVisible) return;
-
+    
     ctx.save();
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
     renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
     
+    // Title
     setFont(ctx, 24, '#333333', true);
     ctx.textAlign = 'center';
     ctx.fillText(this.title, this.x + this.width / 2, this.y + 50);
     
+    // Instructions
     setFont(ctx, 18, '#666666');
-    ctx.fillText(this.content, this.x + this.width / 2, this.y + 90);
-
+    ctx.textAlign = 'center';
+    
+    if (Array.isArray(this.content)) {
+      const lineHeight = 25;
+      const totalLines = this.content.length;
+      const totalContentHeight = totalLines * lineHeight;
+      
+      const contentAreaTop = this.y + 90;
+      const contentAreaBottom = this.confirmButton.y - 50;
+      const contentAreaHeight = contentAreaBottom - contentAreaTop;
+      const startY = contentAreaTop + (contentAreaHeight - totalContentHeight) / 2 + lineHeight;
+      
+      this.content.forEach((line, index) => {
+        const yPos = startY + index * lineHeight;
+        ctx.fillText(line, this.x + this.width / 2, yPos);
+      });
+    } else {
+      ctx.fillText(this.content, this.x + this.width / 2, this.y + 90);
+    }
+    
     this.confirmButton.render(ctx);
     this.cancelButton.render(ctx);
     ctx.restore();
@@ -70,10 +90,6 @@ export default class ConfirmBox extends BoxBase {
     }
     
     if (this.cancelButton.handleClick(x, y)) {
-      return true;
-    }
-    
-    if (this.isPointInside(x, y)) {
       return true;
     }
     return false;

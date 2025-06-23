@@ -1,5 +1,5 @@
-import ButtonBase from '../base/buttonBase';
-import { BUTTON_NAME, BUTTON_TYPE } from '../constants';
+import ButtonBase from '../../base/buttonBase';
+import { BUTTON_NAME, BUTTON_TYPE } from '../../constants';
 
 const BACK_BUTTON_IMG_SRC = 'images/back.png';
 const RESET_BUTTON_IMG_SRC = 'images/reset.png';

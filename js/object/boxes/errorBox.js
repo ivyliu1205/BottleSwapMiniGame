@@ -1,6 +1,6 @@
-import BoxBase from '../base/boxBase';
-import { renderBackgroundShadow, renderRoundedRect, setFont } from '../utils/componentUtil';
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
+import BoxBase from '../../base/boxBase';
+import { renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render';
 
 export default class ErrorBox extends BoxBase {
   constructor() {

@@ -1,38 +1,25 @@
 import BoxBase from '../../base/boxBase';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render';
-import { renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
-import { GAME_INSTRUCTION } from '../../constants';
+import { drawBoxHeader, renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
+import { BOX_TYPE, GAME_INSTRUCTION, LARGE_BOX_HEADER_HEIGHT, LARGE_BOX_HEIGHT, LARGE_BOX_WIDTH } from '../../constants';
 
 export default class InfoBox extends BoxBase {
   constructor() {
-    super(270, 330, true);
+    super(BOX_TYPE.LARGE, LARGE_BOX_WIDTH, LARGE_BOX_HEIGHT, true);
 
     this.padding = 30;
     this.lineHeight = 35;
-    this.headerHeight = 60;
+    this.headerHeight = LARGE_BOX_HEADER_HEIGHT;
     
     this.title = "游戏说明";
     this.content = GAME_INSTRUCTION;
   }
 
-  show() {
-    super.show();
-    const x = (SCREEN_WIDTH - this.width) / 2;
-    const y = (SCREEN_HEIGHT - this.height) / 2;
-    this.setPosition(x, y);
-  }
-
   render(ctx) {
     if (!this.isVisible) return;
-
-    ctx.save();
-    renderBackgroundShadow(ctx);
-    this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
-    renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
-    this.drawCloseButton(ctx);
-
+    super.render(ctx);
+    drawBoxHeader(ctx, this.title, this.x, this.y, this.width);
     this.drawContent(ctx);
-    ctx.restore();
   }
 
   /**
@@ -41,11 +28,6 @@ export default class InfoBox extends BoxBase {
   handleClick(x, y) {
     if (!this.isVisible) return false;
     if (this.handleCloseButton(x, y)) return true;
-
-    if (!this.isPointInside(x, y)) {
-      this.hide();
-      return true;
-    } 
     return false;
   }
 
@@ -53,10 +35,6 @@ export default class InfoBox extends BoxBase {
    * Draw
    */
   drawContent(ctx) {
-    setFont(ctx, 24, '#333333', true);
-    ctx.textAlign = 'center';
-    ctx.fillText(this.title, this.x + this.width / 2, this.y + this.headerHeight);
-    
     setFont(ctx, 20, '#6c757d');
     ctx.textAlign = 'left';
     this.content.forEach((line, index) => {

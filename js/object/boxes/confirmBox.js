@@ -1,4 +1,5 @@
 import BoxBase from '../../base/boxBase';
+import { BOX_TYPE } from '../../constants';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render';
 import { setFont, renderBackgroundShadow, renderRoundedRect } from '../../utils/componentUtil';
 import NormalButton, { NORMAL_BUTTON_TYPE, NORMAL_BUTTON_SIZE } from '../buttons/normalButton';
@@ -8,7 +9,7 @@ const CONFIRM_BOX_HEIGHT = 200;
 
 export default class ConfirmBox extends BoxBase {
   constructor() {
-    super(CONFIRM_BOX_WIDTH, CONFIRM_BOX_HEIGHT, false);
+    super(BOX_TYPE.MEDIUM, CONFIRM_BOX_WIDTH, CONFIRM_BOX_HEIGHT, false);
     
     this.setPosition(
       (SCREEN_WIDTH - CONFIRM_BOX_WIDTH) / 2,

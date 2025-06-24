@@ -52,6 +52,12 @@ export const ANIMATION_MODE = {
 }
 
 // BOXES
+export const BOX_TYPE = {
+  LARGE: "large",
+  MEDIUM: "medium",
+  MEDIUM_COLOR: "medium_color",
+}
+
 export const LARGE_BOX_WIDTH = 300;
 export const LARGE_BOX_HEIGHT = 370;
 export const LARGE_BOX_HEADER_HEIGHT = 60;

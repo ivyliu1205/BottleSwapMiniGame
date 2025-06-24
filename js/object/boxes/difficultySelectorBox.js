@@ -1,11 +1,11 @@
-import { GAME_DIFFICULTY_INFO, GAME_DIFFICULTIES, LARGE_BOX_WIDTH, LARGE_BOX_HEIGHT, LARGE_BOX_HEADER_HEIGHT } from '../../constants';
-import { renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
+import { GAME_DIFFICULTY_INFO, GAME_DIFFICULTIES, LARGE_BOX_WIDTH, LARGE_BOX_HEIGHT, LARGE_BOX_HEADER_HEIGHT, BOX_TYPE } from '../../constants';
+import { drawBoxHeader, renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
 import BoxBase from '../../base/boxBase';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../render';
 
 export default class DifficultySelectorBox extends BoxBase {
   constructor() {
-    super(LARGE_BOX_WIDTH, LARGE_BOX_HEIGHT, true);
+    super(BOX_TYPE.LARGE, LARGE_BOX_WIDTH, LARGE_BOX_HEIGHT, true);
     this.itemHeight = 80;
     this.itemPadding = 20;
     this.headerHeight = LARGE_BOX_HEADER_HEIGHT;
@@ -24,12 +24,7 @@ export default class DifficultySelectorBox extends BoxBase {
   /**
    * Events
    */
-  show() {
-    super.show();
-    var x = (SCREEN_WIDTH - this.width) / 2;
-    var y = (SCREEN_HEIGHT - this.height) / 2;
-    this.setPosition(x, y);
-  }
+
 
   /**
    * Handler
@@ -37,12 +32,6 @@ export default class DifficultySelectorBox extends BoxBase {
   handleClick(x, y) {
     if (!this.isVisible) return false;
     if (this.handleCloseButton(x, y)) return true;
-
-    if (x < this.x || x > this.x + this.width || y < this.y || y > this.y + this.height) {
-      this.hide();
-      if (this.onClose) this.onClose();
-      return true;
-    }
 
     const contentX = this.x + 20;
     const contentY = this.y + this.headerHeight;
@@ -63,7 +52,7 @@ export default class DifficultySelectorBox extends BoxBase {
         return true;
       }
     }
-    return true;
+    return false;
   }
 
   /**
@@ -71,15 +60,9 @@ export default class DifficultySelectorBox extends BoxBase {
    */
   render(ctx) {
     if (!this.isVisible) return;
-    renderBackgroundShadow(ctx);
-    this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
-    renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
-
-    setFont(ctx, 24, '#333333', true);
-    ctx.textAlign = 'center';
-    ctx.fillText('选择难度', this.x + this.width / 2, this.y + 35);
-
-    this.drawCloseButton(ctx);
+    super.render(ctx);
+    ctx.save();
+    drawBoxHeader(ctx, '选择难度', this.x, this.y, this.width);
 
     const contentX = this.x + 20;
     const contentY = this.y + this.headerHeight;
@@ -91,6 +74,7 @@ export default class DifficultySelectorBox extends BoxBase {
         this.renderDifficultyItem(ctx, difficulty, contentX, itemY, contentWidth);
       }
     });
+    this.drawCloseButton(ctx);
     ctx.restore();
   }
 

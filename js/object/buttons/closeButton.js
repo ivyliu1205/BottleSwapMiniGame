@@ -1,9 +1,11 @@
 import ButtonBase from "../../base/buttonBase";
 import { BUTTON_TYPE } from "../../constants";
 
+const CLOSE_BUTTON_NAME = 'closeButton';
+
 export default class CloseButton extends ButtonBase {
-  constructor(size = 20) {
-    super(BUTTON_TYPE.CLOSE_BUTTON, 0, 0, size, size);
+  constructor(size = 30) {
+    super(CLOSE_BUTTON_NAME, BUTTON_TYPE.CLOSE_BUTTON, 0, 0, size, size);
     this.size = size;
     this.padding = 8;
   }
@@ -20,9 +22,7 @@ export default class CloseButton extends ButtonBase {
   }
 
   render(ctx) {
-    console.log("Button renderrr 1");
     if (!this.isVisible)  return;
-    console.log("Button renderrr 2");
     ctx.save();
     ctx.fillStyle = '#ff4757';
     ctx.beginPath();

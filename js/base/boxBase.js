@@ -1,16 +1,26 @@
 import ComponentBase from '../base/componentBase';
+import { BOX_TYPE } from '../constants';
 import CloseButton from '../object/buttons/closeButton';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
+import { renderBackgroundShadow, renderRoundedRect } from '../utils/componentUtil';
 
 export default class BoxBase extends ComponentBase {
-  constructor(width, height, showCloseButton = false) {
+  constructor(boxType, width, height, showCloseButton = false) {
     super(false, width, height);
+
+    this.boxType = boxType;
+
+    // Position
+    this.setPosition(
+      (SCREEN_WIDTH - this.width) / 2,
+      (SCREEN_HEIGHT - this.height) / 2
+    );
 
     // Close button
     this.showCloseButton = showCloseButton;
     this.closeButton = null;
     
     if (this.showCloseButton) {
-      console.log("Draaw showCloseButton");
       this.closeButton = new CloseButton(30);
       this.closeButton.setOnClickCallback(() => {
         this.handleCloseButtonClick();
@@ -76,6 +86,24 @@ export default class BoxBase extends ComponentBase {
   /**
    * Draw
    */
+  render(ctx) {
+    switch (this.boxType) {
+      case BOX_TYPE.LARGE:
+        this.renderLargeBox(ctx);
+        break;
+      default:
+        console.log("No common render methods");
+        break;
+    }
+  }
+
+  renderLargeBox(ctx) {
+    renderBackgroundShadow(ctx);
+    this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
+    renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
+    this.drawCloseButton(ctx);
+  }
+
   drawBoxBackground(ctx, fillColor, strokeColor) {
     ctx.fillStyle = fillColor;
     ctx.strokeStyle = strokeColor;
@@ -83,9 +111,7 @@ export default class BoxBase extends ComponentBase {
   }
 
   drawCloseButton(ctx) {
-    console.log("drawCloseButton");
     if (this.closeButton && this.closeButton.isVisible) {
-      console.log("drawCloseButton 2");
       this.closeButton.render(ctx);
     }
   }
@@ -93,11 +119,4 @@ export default class BoxBase extends ComponentBase {
   /**
    * Utils
    */
-  isCloseButtonClicked(x, y) {
-    if (!this.isVisible || !this.hasCloseButton) return false;
-    return x >= this.closeButtonX && 
-            x <= this.closeButtonX + this.closeButtonSize &&
-            y >= this.closeButtonY && 
-            y <= this.closeButtonY + this.closeButtonSize;
-  }
 } 

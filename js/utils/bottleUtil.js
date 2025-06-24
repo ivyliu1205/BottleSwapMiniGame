@@ -6,19 +6,26 @@ import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
  * Place all bottles in the center of the screen
  * 
  * @param {*} bottleIndexes The indexes of the bottles
+ * @param {*} bottleScale The scale of bottle size, newSize = BOTTLE_WIDTH * bottleScale
+ * @param {*} windowScale The scale of bottle size, newSize = SCREEN_WIDTH * windowScale
  * @returns List of objects in format of [color_index, posX, posY]
  */
-export function calculateBottlePositions(bottleIndexes) {
+export function calculateBottlePositions(bottleIndexes, bottleScale=1, windowScale=1) {
   const n = bottleIndexes.length;
+  const bottleWidth = BOTTLE_WIDTH * bottleScale;
+  const bottleHeight = BOTTLE_HEIGHT * bottleScale;
+  const bottleSpacing = BOTTLE_SPACING * bottleScale;
+  const windowWidth = SCREEN_WIDTH * windowScale;
+  const windowHeight = SCREEN_HEIGHT * windowScale;
 
   var positions = [];
   if (n <= 5) {
-    const totalWidth = n * BOTTLE_WIDTH + (n - 1) * BOTTLE_SPACING;
-    const startX = (SCREEN_WIDTH - totalWidth) / 2;
-    const y = SCREEN_HEIGHT / 2 - BOTTLE_HEIGHT / 2;
+    const totalWidth = n * bottleWidth + (n - 1) * bottleSpacing;
+    const startX = (windowWidth - totalWidth) / 2;
+    const y = windowHeight / 2 - bottleHeight / 2;
     
     bottleIndexes.forEach((colorIdx, idx) => {
-        const x = startX + idx * (BOTTLE_WIDTH + BOTTLE_SPACING);
+        const x = startX + idx * (bottleWidth + bottleSpacing);
         positions.push([colorIdx, x, y]);
     });
     return positions;
@@ -32,18 +39,18 @@ export function calculateBottlePositions(bottleIndexes) {
   for (let i = 0; i < rows; i++) {
       rowCounts[i] = bottlesPerRow + (i < extraBottles ? 1 : 0);
   }
-  const totalHeight = rows * BOTTLE_HEIGHT + (rows - 1) * BOTTLE_SPACING;
-  const startY = (SCREEN_HEIGHT - totalHeight) / 2;
+  const totalHeight = rows * bottleHeight + (rows - 1) * bottleSpacing;
+  const startY = (windowHeight - totalHeight) / 2;
 
   let bottleIndex = 0;
   for (let row = 0; row < rows; row++) {
       const currentRowCount = rowCounts[row];
-      const currentRowWidth = currentRowCount * BOTTLE_WIDTH + (currentRowCount - 1) * BOTTLE_SPACING;
-      const currentRowStartX = (SCREEN_WIDTH - currentRowWidth) / 2;
+      const currentRowWidth = currentRowCount * bottleWidth + (currentRowCount - 1) * bottleSpacing;
+      const currentRowStartX = (windowWidth - currentRowWidth) / 2;
       
       for (let col = 0; col < currentRowCount; col++) {
-          const x = currentRowStartX + col * (BOTTLE_WIDTH + BOTTLE_SPACING);
-          const y = startY + row * (BOTTLE_HEIGHT + BOTTLE_SPACING);
+          const x = currentRowStartX + col * (bottleWidth + bottleSpacing);
+          const y = startY + row * (bottleHeight + bottleSpacing);
           
           const colorIdx = bottleIndexes[bottleIndex];
           positions.push([colorIdx, x, y]);

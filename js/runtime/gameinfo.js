@@ -79,7 +79,6 @@ export default class GameInfo {
         GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       });
       this.infoBox.setOnHideCallback(() => {
-        console.log("00");
         GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       });
     }
@@ -93,7 +92,6 @@ export default class GameInfo {
       this.confirmBox = new ConfirmBox();
 
       this.confirmBox.setOnShowCallback(() => {
-        console.log("11");
         GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       });
 
@@ -102,7 +100,6 @@ export default class GameInfo {
       });
 
       this.confirmBox.setOnCancel(() => {
-        console.log("1");
         GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       });
     }
@@ -117,6 +114,7 @@ export default class GameInfo {
       this.hintBox = new HintBox();
 
       this.hintBox.setOnShowCallback(() => {
+        GameGlobal.databus.incrementSwapCnt(10);
         GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       });
       
@@ -136,7 +134,6 @@ export default class GameInfo {
 
       this.difficultySelectorBox.setOnDifficultySelect((difficulty) => {
         GameGlobal.databus.updateDifficulty(GAME_DIFFICULTY[difficulty.toUpperCase()]);
-        console.log("3");
         GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
       });
 
@@ -204,7 +201,7 @@ export default class GameInfo {
   touchEventHandler(event) {
     const { clientX, clientY } = event.touches[0];
     const gameStatus = GameGlobal.databus.getGameStatus();
-    console.log('Touch event:', clientX, clientY, 'Game status:', gameStatus);
+    // console.log('Touch event:', clientX, clientY, 'Game status:', gameStatus);
   
     switch(gameStatus) {
       case GAME_STATUS.VICTORY:
@@ -286,7 +283,6 @@ export default class GameInfo {
   }
 
   handleReset() {
-    console.log("4");
     GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
     this.animationManager.cancelAnimation();
     this.bottleClicked = [];
@@ -324,8 +320,7 @@ export default class GameInfo {
   }
 
   handleHint() {
-    console.log("Show Hint");
-    this.confirmBox.show('使用提示', ['是否要查看答案？', '查看会导致步数+10']);
+    this.confirmBox.show('使用提示', ['是否要查看答案？', '查看会导致交换次数+10']);
     GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
   }
 

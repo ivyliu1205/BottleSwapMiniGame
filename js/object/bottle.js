@@ -82,4 +82,9 @@ export default class Bottle extends ComponentBase {
    getColorIndex() {
     return this.colorIndex;
   }
+
+  setBottleSizeWithScale(bottleScale=1) {
+    this.width = BOTTLE_WIDTH * bottleScale;
+    this.height = BOTTLE_HEIGHT * bottleScale;
+  }
 }

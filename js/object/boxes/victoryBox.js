@@ -1,12 +1,12 @@
 import { renderBackgroundShadow, renderRoundedRect, setFont } from '../../utils/componentUtil';
 import BoxBase from '../../base/boxBase';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../render';
-import { BUTTON_NAME, INNER_BUTTON_SIZE, INNER_BUTTON_SPACING } from '../../constants';
+import { BOX_TYPE, BUTTON_NAME, INNER_BUTTON_SIZE, INNER_BUTTON_SPACING } from '../../constants';
 import InnerOpButton from '../buttons/innerOpButton';
 
 export default class VictoryBox extends BoxBase {
   constructor() {
-    super(300, 240);
+    super(BOX_TYPE.MEDIUM_COLOR ,300, 240);
     this.swapCount = 0;
     this.correctCount = 0;
 

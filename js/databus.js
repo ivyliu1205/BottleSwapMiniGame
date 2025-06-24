@@ -90,13 +90,13 @@ export default class DataBus {
   swapBottles(i, j) {
     swapArrayItems(this.bottleIndexes, i, j);
     this.correctCnt = this.getCorrectBottleCount();
-    this.swapCnt += 1;
+    this.incrementSwapCnt(1);
     this.prevSwap = [i, j];
   }
 
   backToPrevStep() {
     if (this.prevSwap == DEFAULT_PREV_SWAP) {
-      var errorMsg = '只能后退一步';
+      var errorMsg = '不能再后退了';
       if (this.swapCnt == 0) {
         errorMsg = '请先移动瓶子';
       }
@@ -104,7 +104,7 @@ export default class DataBus {
     }
     swapArrayItems(this.bottleIndexes, ...this.prevSwap);
     this.correctCnt = this.getCorrectBottleCount();
-    this.swapCnt += 1;
+    this.incrementSwapCnt(1);
     this.prevSwap = DEFAULT_PREV_SWAP;
     return [true, null];
   }
@@ -118,6 +118,13 @@ export default class DataBus {
 
   shareResultToMoment() {
     this.shareManager.shareToMoments(this.swapCnt, this.getGameDifficultyName());
+  }
+
+  /**
+   * Utils
+   */
+  incrementSwapCnt(plus=1) {
+    this.swapCnt += plus;
   }
 
   /**

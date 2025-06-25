@@ -1,7 +1,7 @@
 import BoxBase from '../../base/boxBase';
-import { BOX_TYPE } from '../../constants';
+import { BOX_TYPE, CONTENT_COLOR } from '../../constants';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render';
-import { setFont, renderBackgroundShadow, renderRoundedRect } from '../../utils/componentUtil';
+import { setFont, renderBackgroundShadow, renderRoundedRect, drawBoxHeader } from '../../utils/componentUtil';
 import NormalButton, { NORMAL_BUTTON_TYPE, NORMAL_BUTTON_SIZE } from '../buttons/normalButton';
 
 const CONFIRM_BOX_WIDTH = 300;
@@ -31,15 +31,12 @@ export default class ConfirmBox extends BoxBase {
     ctx.save();
     renderBackgroundShadow(ctx);
     this.drawBoxBackground(ctx, '#ffffff', '#cccccc');
+
     renderRoundedRect(ctx, this.x, this.y, this.width, this.height, 10);
-    
-    // Title
-    setFont(ctx, 24, '#333333', true);
-    ctx.textAlign = 'center';
-    ctx.fillText(this.title, this.x + this.width / 2, this.y + 50);
+    drawBoxHeader(ctx, this.title, this.x, this.y, this.width);
     
     // Instructions
-    setFont(ctx, 18, '#666666');
+    setFont(ctx, 18, CONTENT_COLOR);
     ctx.textAlign = 'center';
     
     if (Array.isArray(this.content)) {
@@ -69,7 +66,6 @@ export default class ConfirmBox extends BoxBase {
    * Events
    */
   show(title, content) {
-    console.log("ENter confirm box show");
     super.show();
     this.title = title;
     this.content = content;
@@ -100,7 +96,6 @@ export default class ConfirmBox extends BoxBase {
    * Buttons
    */
   createButtons() {
-    console.log("Creaye confirm buttons");
     const buttonY = this.y + CONFIRM_BOX_HEIGHT - NORMAL_BUTTON_SIZE.HEIGHT - 20;
     const buttonSpacing = 20;
     const totalButtonWidth = NORMAL_BUTTON_SIZE.WIDTH * 2 + buttonSpacing;

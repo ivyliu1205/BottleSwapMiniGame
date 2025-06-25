@@ -1,3 +1,4 @@
+import { HEADER_COLOR, HEADER_FONT_SIZE } from "../constants";
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from "../render";
 
 export function renderBackgroundShadow(ctx) {
@@ -22,9 +23,9 @@ export function renderRoundedRect(ctx, x, y, width, height, radius) {
 }
 
 export function drawBoxHeader(ctx, header, boxX, boxY, boxWidth) {
-  setFont(ctx, 24, '#333333', true);
+  setFont(ctx, HEADER_FONT_SIZE, HEADER_COLOR, true);
   ctx.textAlign = 'center';
-  ctx.fillText(header, boxX + boxWidth / 2, boxY + 35);
+  ctx.fillText(header, boxX + boxWidth / 2, boxY + 50);
 }
 
 export function setFont(ctx, fontSize, fillStype='#000000', isBold=false) {

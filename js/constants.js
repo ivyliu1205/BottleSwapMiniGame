@@ -40,6 +40,7 @@ export const BUTTON_NAME = {
   INFO: "Info",
   RESET: "Reset",
   BACK: "Back",
+  FEEDBACK: "Feedback",
   SHARE_TO_FRIEND: "ShareToFriend",
   SHARE_TO_MOMENT: "ShareToMoment"
 } 
@@ -61,6 +62,13 @@ export const BOX_TYPE = {
 export const LARGE_BOX_WIDTH = 300;
 export const LARGE_BOX_HEIGHT = 370;
 export const LARGE_BOX_HEADER_HEIGHT = 60;
+
+export const HEADER_COLOR = '#333333';
+export const HEADER_FONT_SIZE = 24;
+export const CONTENT_COLOR = '#6c757d';
+export const CONTENT_FONT_SIZE = 20;
+export const LABEL_COLOR = '#666666';
+export const LABEL_FONT_SIZE = '#6c757d';
 
 // INNER OPERATION BUTTONS
 export const INNER_BUTTON_SIZE = 40;

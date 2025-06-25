@@ -35,7 +35,6 @@ export default class CloseButton extends ButtonBase {
     );
     ctx.fill();
 
-    // 绘制关闭图标 (×)
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
@@ -44,7 +43,6 @@ export default class CloseButton extends ButtonBase {
     const centerY = this.y + this.height / 2;
     const iconSize = this.width / 2 - this.padding;
     
-    // 绘制 × 形状
     ctx.beginPath();
     ctx.moveTo(centerX - iconSize / 2, centerY - iconSize / 2);
     ctx.lineTo(centerX + iconSize / 2, centerY + iconSize / 2);
@@ -56,7 +54,7 @@ export default class CloseButton extends ButtonBase {
   }
 
   setRelativePosition(parentX, parentY, parentWidth, parentHeight) {
-    this.x = parentX + parentWidth - this.width - 10; // 距离右边10px
-    this.y = parentY + 10; // 距离顶部10px
+    this.x = parentX + parentWidth - this.width - 10;
+    this.y = parentY + 10;
   }
 }

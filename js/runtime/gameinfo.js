@@ -20,6 +20,7 @@ import { calculateBottlePositions } from '../utils/bottleUtil';
 import BottleAnimationManager from './bottleAnimationManager';
 import ConfirmBox from '../object/boxes/confirmBox';
 import HintBox from '../object/boxes/hintBox';
+import { sendFeedback } from '../utils/wxUtils';
 
 export default class GameInfo {
   bottles = [];
@@ -80,6 +81,12 @@ export default class GameInfo {
       });
       this.infoBox.setOnHideCallback(() => {
         GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+      });
+      this.infoBox.setOnFeedbackClick((buttonName) => {
+        this.handleButtonClick(buttonName);
+      });
+      this.infoBox.setOnImageLoaded(() => {
+        this.render(this.ctx);
       });
     }
     if (this.infoBox.isVisible) {
@@ -265,6 +272,10 @@ export default class GameInfo {
 
       case BUTTON_NAME.HINT:
         this.handleHint();
+        break;
+      
+      case BUTTON_NAME.FEEDBACK:
+        sendFeedback();
         break;
         
       default:

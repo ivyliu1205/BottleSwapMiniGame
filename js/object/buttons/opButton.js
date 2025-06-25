@@ -6,6 +6,7 @@ const RESET_BUTTON_IMG_SRC = 'images/reset.png';
 const INFO_BUTTON_IMG_SRC = 'images/question.png';
 const MORE_BUTTON_IMG_SRC = 'images/more.png';
 const HINT_BUTTON_IMG_SRC = 'images/view.png';
+const FEEDBACK_BUTTON_IMG_SRC = 'images/feedback.png';
 
 export const OPERATION_BUTTONS = [  // Right to left
   BUTTON_NAME.MORE,
@@ -20,7 +21,8 @@ const OPERATION_BUTTON_INFO = new Map([
   [BUTTON_NAME.INFO, INFO_BUTTON_IMG_SRC],
   [BUTTON_NAME.RESET, RESET_BUTTON_IMG_SRC],
   [BUTTON_NAME.BACK, BACK_BUTTON_IMG_SRC],
-  [BUTTON_NAME.HINT, HINT_BUTTON_IMG_SRC]
+  [BUTTON_NAME.HINT, HINT_BUTTON_IMG_SRC],
+  [BUTTON_NAME.FEEDBACK, FEEDBACK_BUTTON_IMG_SRC]
 ]);
 
 export default class OpButton extends ButtonBase {

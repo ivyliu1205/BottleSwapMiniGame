@@ -80,8 +80,8 @@ export default class DataBus {
   }
 
   checkVictory() {
-    return true;
-    // return this.correctCnt == this.bottleIndexes.length;
+    // return true;
+    return this.correctCnt == this.bottleIndexes.length;
   }
 
   /**

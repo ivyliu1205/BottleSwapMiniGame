@@ -1,4 +1,3 @@
-import { ANIMATION_MODE } from '../constants';
 
 export default class BottleAnimationManager {
   constructor() {

@@ -1,4 +1,3 @@
-
 import { BUTTON_TYPE } from '../constants';
 import ComponentBase from './componentBase';
 

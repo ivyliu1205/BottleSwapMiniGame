@@ -4,8 +4,14 @@ import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../../render';
 import { setFont, renderBackgroundShadow, renderRoundedRect, drawBoxHeader } from '../../utils/componentUtil';
 import NormalButton, { NORMAL_BUTTON_TYPE, NORMAL_BUTTON_SIZE } from '../buttons/normalButton';
 
+export const CONFIRM_BOM_TYPE = {
+  HINT: 'hint',
+  BACK: 'back'
+}
+
 const CONFIRM_BOX_WIDTH = 300;
 const CONFIRM_BOX_HEIGHT = 200;
+
 
 export default class ConfirmBox extends BoxBase {
   constructor() {

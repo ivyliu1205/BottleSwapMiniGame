@@ -18,9 +18,10 @@ import { isFirstOpenWithVersion } from '../utils/commonUtil';
 import { setFont } from '../utils/componentUtil';
 import { calculateBottlePositions } from '../utils/bottleUtil';
 import BottleAnimationManager from './bottleAnimationManager';
-import ConfirmBox from '../object/boxes/confirmBox';
+import ConfirmBox, { CONFIRM_BOM_TYPE } from '../object/boxes/confirmBox';
 import HintBox from '../object/boxes/hintBox';
 import { sendFeedback } from '../utils/wxUtils';
+import ScoreAnimationManager from './scoreAnimationManager';
 
 export default class GameInfo {
   bottles = [];
@@ -32,8 +33,11 @@ export default class GameInfo {
   constructor() {
     wx.onTouchStart(this.touchEventHandler.bind(this));
 
-    this.animationManager = new BottleAnimationManager();
-    this.setupAnimationCallbacks();
+    this.bottleAnimationManager = new BottleAnimationManager();
+    this.setupBottleAnimationCallbacks();
+
+    this.scoreAnimationManager = new ScoreAnimationManager();
+    this.setupScoreAnimationCallbacks();
   }
 
   render(ctx) {
@@ -97,20 +101,28 @@ export default class GameInfo {
   renderConfirmBox() {
     if (!this.confirmBox) {
       this.confirmBox = new ConfirmBox();
-
+  
       this.confirmBox.setOnShowCallback(() => {
         GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
       });
-
+  
+      this.confirmBoxType = null;
       this.confirmBox.setOnConfirm(() => {
-        this.hintBox.show(GameGlobal.databus.getExpectedBottleIndexes());
+        if (this.confirmBoxType === CONFIRM_BOM_TYPE.HINT) {
+          this.hintBox.show(GameGlobal.databus.getExpectedBottleIndexes());
+        } else if (this.confirmBoxType === CONFIRM_BOM_TYPE.BACK) {
+          GameGlobal.databus.backToPrevStep();
+          GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+        }
+        this.confirmBoxType = null;
       });
-
+  
       this.confirmBox.setOnCancel(() => {
         GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
+        this.confirmBoxType = null;
       });
     }
-
+  
     if (this.confirmBox.isVisible) {
       this.confirmBox.render(this.ctx);
     }
@@ -159,7 +171,7 @@ export default class GameInfo {
   }
 
   renderBottles() {
-    if (!this.animationManager.getIsAnimating()) {
+    if (!this.bottleAnimationManager.getIsAnimating()) {
       while (this.bottles.length > 0) {
         this.removeBottle(this.bottles.pop());
       }
@@ -184,7 +196,7 @@ export default class GameInfo {
 
     setFont(this.ctx, 20);
     this.ctx.fillText(`交换次数: ${GameGlobal.databus.swapCnt}`, 20, 125);
-    this.ctx.fillText(`正确个数: ${GameGlobal.databus.correctCnt}`, 20, 155);
+    this.drawCorrectCount();
   }
 
   renderOpButtons() {
@@ -295,22 +307,29 @@ export default class GameInfo {
 
   handleReset() {
     GameGlobal.databus.setGameStatus(GAME_STATUS.PLAYING);
-    this.animationManager.cancelAnimation();
+    this.bottleAnimationManager.cancelAnimation();
     this.bottleClicked = [];
+    this.scoreAnimationManager.stopAnimation();
     GameGlobal.databus.initNewGame();
+    this.scoreAnimationManager.initialize(GameGlobal.databus.correctCnt);
   }
 
   handleBack() {
-    this.handleAnimationInProgress();
+    this.handleBottleAnimationInProgress();
     this.bottleClicked = [];
-    const backStatus = GameGlobal.databus.backToPrevStep();
-    if (!backStatus[0]) {
+    
+    const errorMsg = GameGlobal.databus.getBackErrorMsg();
+    if (errorMsg) {
       wx.showToast({
-        title: backStatus[1],
+        title: errorMsg,
         icon: 'error',
         duration: 2000
       });
+      return;
     }
+    this.confirmBoxType = CONFIRM_BOM_TYPE.BACK;
+    this.confirmBox.show('确认后退', ['是否要撤销上一次的交换操作？', '撤销会导致交换次数+1']);
+    GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
   }
 
   handleInfo() {
@@ -331,12 +350,13 @@ export default class GameInfo {
   }
 
   handleHint() {
+    this.confirmBoxType = CONFIRM_BOM_TYPE.HINT;
     this.confirmBox.show('使用提示', ['是否要查看答案？', '查看会导致交换次数+10']);
     GameGlobal.databus.setGameStatus(GAME_STATUS.INFO);
   }
 
   handleBottleSwap(x, y) {
-    this.handleAnimationInProgress();
+    this.handleBottleAnimationInProgress();
     var isBottleClicked = false;
 
     for (let idx = 0; idx < this.bottles.length; idx++) {
@@ -356,7 +376,7 @@ export default class GameInfo {
       this.bottleClicked.push(idx);
       
       if (this.bottleClicked.length == 2) {
-        this.animationManager.startSwapAnimation(
+        this.bottleAnimationManager.startSwapAnimation(
           this.bottles[this.bottleClicked[0]],
           this.bottles[this.bottleClicked[1]],
           ...this.bottleClicked
@@ -379,6 +399,36 @@ export default class GameInfo {
   }
 
   /**
+   * Draw
+   */
+  drawCorrectCount() {
+    const baseScoreFontSize = 20;
+    const correctTextPrefix = `正确个数: `;
+    const textX = 20;
+    const textY = 155;
+
+    this.scoreAnimationManager.checkAndTriggerAnimation(GameGlobal.databus.correctCnt);
+    const animationState = this.scoreAnimationManager.getAnimationState();
+    setFont(this.ctx, baseScoreFontSize);
+    this.ctx.fillStyle = '#333333';
+    this.ctx.fillText(correctTextPrefix, textX, textY);
+
+    const animatedFontSize = baseScoreFontSize * animationState.fontSizeMultiplier;
+    setFont(this.ctx, animatedFontSize, undefined, animationState.isBold); 
+    this.ctx.fillStyle = animationState.color;
+
+    const textMetricsPrefix = this.ctx.measureText(correctTextPrefix);
+    this.ctx.fillText(
+      GameGlobal.databus.correctCnt.toString(),
+      textX + textMetricsPrefix.width,
+      textY
+    );
+    
+    setFont(this.ctx, baseScoreFontSize);
+    this.ctx.fillStyle = '#333333';
+  }
+
+  /**
    * States
    */
   changeIntoVictory() {
@@ -393,29 +443,29 @@ export default class GameInfo {
   /**
    * Animation
    */
-  setupAnimationCallbacks() {
-    this.animationManager.setOnAnimationUpdate(() => {
+  setupBottleAnimationCallbacks() {
+    this.bottleAnimationManager.setOnAnimationUpdate(() => {
       this.render(this.ctx);
     });
 
-    this.animationManager.setOnAnimationComplete((animationData) => {
-      this.handleAnimationComplete(animationData);
+    this.bottleAnimationManager.setOnAnimationComplete((animationData) => {
+      this.handleBottleAnimationComplete(animationData);
     });
-
-    this.animationManager.setPreset(ANIMATION_MODE.FAST);
+    this.bottleAnimationManager.setPreset(ANIMATION_MODE.FAST);
   }
 
-  handleAnimationComplete(animationData) {
+  handleBottleAnimationComplete(animationData) {
     const [index1, index2] = animationData.indices;
     GameGlobal.databus.swapBottles(index1, index2);
+    this.scoreAnimationManager.checkAndTriggerAnimation(GameGlobal.databus.correctCnt);
     if (GameGlobal.databus.checkVictory()) {
       this.changeIntoVictory();
     }
     this.render(this.ctx);
   }
 
-  handleAnimationInProgress() {
-    if (this.animationManager.getIsAnimating()) {
+  handleBottleAnimationInProgress() {
+    if (this.bottleAnimationManager.getIsAnimating()) {
       wx.showToast({
         title: '动画进行中，请稍后...',
         icon: 'none',
@@ -423,6 +473,13 @@ export default class GameInfo {
       });
       return;
     }
+  }
+
+  setupScoreAnimationCallbacks() {
+    this.scoreAnimationManager.setOnAnimationUpdate(() => {
+      this.render(this.ctx);
+    });
+    this.scoreAnimationManager.initialize(GameGlobal.databus.correctCnt);
   }
 
   /**

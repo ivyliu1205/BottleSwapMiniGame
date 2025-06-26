@@ -94,19 +94,27 @@ export default class DataBus {
     this.prevSwap = [i, j];
   }
 
+  /**
+   * Back to prev step
+   */
   backToPrevStep() {
-    if (this.prevSwap == DEFAULT_PREV_SWAP) {
-      var errorMsg = '不能再后退了';
-      if (this.swapCnt == 0) {
-        errorMsg = '请先移动瓶子';
-      }
-      return [false, errorMsg];
-    }
+    const errorMsg = GameGlobal.databus.getBackErrorMsg();
+    if (errorMsg) return;
+
     swapArrayItems(this.bottleIndexes, ...this.prevSwap);
     this.correctCnt = this.getCorrectBottleCount();
     this.incrementSwapCnt(1);
     this.prevSwap = DEFAULT_PREV_SWAP;
     return [true, null];
+  }
+
+  getBackErrorMsg() {
+    if (GameGlobal.databus.prevSwap != DEFAULT_PREV_SWAP)  return '';
+    var errorMsg = '不能再后退了';
+    if (GameGlobal.databus.swapCnt == 0) {
+      errorMsg = '请先移动瓶子';
+    }
+    return errorMsg;
   }
 
   /**
